@@ -27,3 +27,22 @@ app.get('/api/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+const OnboardingDraft = require('./models/OnboardingDraft');
+
+// Save or update onboarding form draft (Zero-timeout sync)
+app.post('/api/onboarding/draft', async (req, res) => {
+  try {
+    const { sessionId, currentStep, formData } = req.body;
+    
+    const draft = await OnboardingDraft.findOneAndUpdate(
+      { sessionId },
+      { currentStep, formData, lastUpdated: Date.now() },
+      { upsert: true, new: true }
+    );
+
+    res.status(200).json({ success: true, draft });
+  } catch (err) {
+    console.error('Error syncing draft:', err);
+    res.status(500).json({ success: false, error: 'Failed to sync draft' });
+  }
+});
