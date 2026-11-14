@@ -169,7 +169,7 @@ router.post('/jobs/apply', async (req, res) => {
     }
 
     const existingApplication = await JobApplication.findOne({
-      sessionId,
+      sessionId: sessionId.trim(),
       jobId
     });
 

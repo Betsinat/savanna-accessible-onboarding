@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { usePersistentState } from './hooks/userPersistentState';
+import { registerCandidate } from './services/api';
+import JobsView from './components/JobsView';
 
 const QUESTIONS = [
   {
@@ -33,7 +35,12 @@ const QUESTIONS = [
 export default function App() {
   const [currentStep, setCurrentStep] = usePersistentState('savanna_step', 0);
   const [formData, setFormData] = usePersistentState('savanna_form_data', {});
+  const [isCompleted, setIsCompleted] = usePersistentState('savanna_completed', false);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Generate a persistent session ID if not already created
+  const [sessionId] = usePersistentState('savanna_session_id', `session-${Date.now()}`);
 
   const currentQuestion = QUESTIONS[currentStep];
 
@@ -42,16 +49,33 @@ export default function App() {
     if (error) setError('');
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const value = formData[currentQuestion.id];
     if (!value || value.trim() === '') {
       setError('Please provide an answer before continuing to the next step.');
       return;
     }
+
     if (currentStep < QUESTIONS.length - 1) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      alert('Onboarding section complete! Ready for voice and support integration.');
+      // Final step reached! Register candidate to backend and transition to JobsView
+      setIsSubmitting(true);
+      try {
+        await registerCandidate({
+          sessionId,
+          fullName: formData.fullName,
+          phoneOrEmail: formData.phoneOrEmail,
+          idRoute: formData.idRoute,
+        });
+        setIsCompleted(true);
+      } catch (err) {
+        console.error('Backend registration failed, but proceeding locally:', err);
+        // Fallback so the user isn't blocked if backend has a hiccup
+        setIsCompleted(true);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -61,6 +85,11 @@ export default function App() {
       setError('');
     }
   };
+
+  // If onboarding is complete, render the Career Gateway JobsView!
+  if (isCompleted) {
+    return <JobsView formData={formData} sessionId={sessionId} />;
+  }
 
   return (
     <main className="min-h-screen bg-[#111318] text-white flex flex-col justify-between p-6 md:p-12">
@@ -120,7 +149,7 @@ export default function App() {
       <footer className="w-full max-w-2xl mx-auto flex justify-between items-center pt-4 border-t border-gray-800">
         <button
           onClick={handleBack}
-          disabled={currentStep === 0}
+          disabled={currentStep === 0 || isSubmitting}
           className={`px-6 py-3 rounded-xl font-semibold transition-all ${
             currentStep === 0
               ? 'opacity-40 cursor-not-allowed bg-gray-800 text-gray-500'
@@ -132,9 +161,10 @@ export default function App() {
 
         <button
           onClick={handleNext}
-          className="px-8 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40"
+          disabled={isSubmitting}
+          className="px-8 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40 disabled:opacity-50"
         >
-          {currentStep === QUESTIONS.length - 1 ? 'Review & Submit' : 'Next Question'}
+          {isSubmitting ? 'Submitting...' : currentStep === QUESTIONS.length - 1 ? 'Review & Submit' : 'Next Question'}
         </button>
       </footer>
     </main>

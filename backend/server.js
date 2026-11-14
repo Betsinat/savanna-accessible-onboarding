@@ -1,14 +1,16 @@
 
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+
 const candidateRoutes = require('./routes/candidates');
 const jobRoutes = require('./routes/jobs');
 const supportRequestRoutes = require('./routes/supportRequests');
-require('dotenv').config();
+const onboardingRoutes = require('./routes/onboarding');
 
 const connectDB = require('./config/db');
-const onboardingRoutes = require('./routes/onboarding');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
