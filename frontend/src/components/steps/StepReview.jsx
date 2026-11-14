@@ -1,10 +1,19 @@
+
 import React, { useState } from 'react';
 import { registerCandidate } from '../../services/api';
 
-export default function StepReview({ formData, updateFormData, sessionId, onBack, onSuccess }) {
+export default function StepReview({
+  formData,
+  updateFormData,
+  sessionId,
+  onBack,
+  onSuccess
+}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [consentGiven, setConsentGiven] = useState(formData.consentGiven || false);
+  const [consentGiven, setConsentGiven] = useState(
+    formData.consentGiven || false
+  );
 
   const accommodations = formData.accommodationPreferences || [];
 
@@ -12,7 +21,7 @@ export default function StepReview({ formData, updateFormData, sessionId, onBack
     const updated = accommodations.includes(accId)
       ? accommodations.filter((item) => item !== accId)
       : [...accommodations, accId];
-    
+
     updateFormData('accommodationPreferences', updated);
   };
 
@@ -21,6 +30,7 @@ export default function StepReview({ formData, updateFormData, sessionId, onBack
       setError('Please check the consent box to complete registration.');
       return;
     }
+
     setError('');
     setIsSubmitting(true);
 
@@ -40,123 +50,109 @@ export default function StepReview({ formData, updateFormData, sessionId, onBack
 
       await registerCandidate(payload);
 
-    onSuccess({
-      formData: {
-        ...formData,
-        consentGiven: true,
-        accommodationPreferences: accommodations,
-      },
-      sessionId,
-    });
+      onSuccess({
+        formData: {
+          ...formData,
+          consentGiven: true,
+          accommodationPreferences: accommodations,
+        },
+        sessionId,
+      });
     } catch (err) {
       console.error('Registration failed:', err);
-      setError('Failed to complete registration. Please check your connection and try again.');
+      setError(
+        'Failed to complete registration. Please check your connection and try again.'
+      );
       setIsSubmitting(false);
     }
   };
 
   return (
-    <section>
-      <h2 className="text-2xl font-bold mb-2">Review & Complete</h2>
-      <p className="text-gray-400 mb-6">
-        Review your details, select any workplace accommodations you prefer, and finalize your registration.
-      </p>
-
-      <div className="space-y-6 mb-6">
-        {/* Summary Card */}
-        <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 space-y-3 text-sm">
-          <div className="flex justify-between border-b border-gray-800 pb-2">
-            <span className="text-gray-400">Full Name:</span>
-            <span className="font-semibold text-white">{formData.fullName || 'Not provided'}</span>
-          </div>
-          <div className="flex justify-between border-b border-gray-800 pb-2">
-            <span className="text-gray-400">Contact:</span>
-            <span className="font-semibold text-white">{formData.phoneOrEmail || 'Not provided'}</span>
-          </div>
-          <div className="flex justify-between border-b border-gray-800 pb-2">
-            <span className="text-gray-400">ID Route:</span>
-            <span className="font-semibold text-white capitalize">{formData.idRoute || 'standard_id'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Support Type:</span>
-            <span className="font-semibold text-white capitalize">{formData.supportType || 'None selected'}</span>
-          </div>
+    <div className="space-y-6">
+      <section className="bg-gray-950 border border-gray-800 rounded-xl p-4 space-y-3 text-sm">
+        <div className="flex justify-between border-b border-gray-800 pb-2">
+          <span className="text-gray-400">Full Name:</span>
+          <span className="font-semibold text-white">
+            {formData.fullName || 'Not provided'}
+          </span>
         </div>
 
-        {/* Accommodation Preferences */}
-        <div>
-          <label className="block text-sm font-medium mb-3">
-            Select Your Workplace Accommodations (Optional)
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[
-              { id: 'screen_reader_compatible', label: 'Screen Reader Compatible' },
-              { id: 'flexible_hours', label: 'Flexible Working Hours' },
-              { id: 'remote_work', label: 'Remote Work Enabled' },
-              { id: 'captioned_meetings', label: 'Captioned Meetings' },
-            ].map((acc) => {
-              const isSelected = accommodations.includes(acc.id);
-              return (
-                <button
-                  key={acc.id}
-                  type="button"
-                  onClick={() => toggleAccommodation(acc.id)}
-                  className={`p-3 rounded-xl border text-left text-sm font-medium transition-all ${
-                    isSelected
-                      ? 'bg-blue-600/20 border-blue-500 text-white'
-                      : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-700'
-                  }`}
-                >
-                  {acc.label} {isSelected && '✓'}
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex justify-between border-b border-gray-800 pb-2">
+          <span className="text-gray-400">Contact:</span>
+          <span className="font-semibold text-white">
+            {formData.phoneOrEmail || 'Not provided'}
+          </span>
         </div>
 
-        {/* Consent Checkbox */}
-        <div className="flex items-start gap-3 bg-gray-950 border border-gray-800 p-4 rounded-xl">
+        <div className="flex justify-between border-b border-gray-800 pb-2">
+          <span className="text-gray-400">ID Route:</span>
+          <span className="font-semibold text-white capitalize">
+            {formData.idRoute || 'standard_id'}
+          </span>
+        </div>
+
+        <div className="flex justify-between">
+          <span className="text-gray-400">Support Type:</span>
+          <span className="font-semibold text-white capitalize">
+            {formData.supportType || 'None selected'}
+          </span>
+        </div>
+
+        <div className="flex justify-between border-t border-gray-800 pt-2">
+          <span className="text-gray-400">Consent:</span>
+          <span className="font-semibold text-white">
+            {consentGiven ? 'Provided' : 'Not provided'}
+          </span>
+        </div>
+      </section>
+
+      <div className="space-y-3">
+        <label className="flex items-start gap-3 text-sm text-gray-300">
           <input
             type="checkbox"
-            id="consentGiven"
             checked={consentGiven}
             onChange={(e) => {
               setConsentGiven(e.target.checked);
               updateFormData('consentGiven', e.target.checked);
-              if (error) setError('');
+              setError('');
             }}
-            className="mt-1 accent-blue-600 h-4 w-4 cursor-pointer"
+            disabled={isSubmitting}
+            className="mt-1"
           />
-          <label htmlFor="consentGiven" className="text-xs text-gray-300 cursor-pointer">
-            I consent to saving my onboarding draft and candidate profile securely to access accessible employment opportunities.
-          </label>
-        </div>
+
+          <span>
+            I confirm that the information provided is accurate and consent
+            to the collection and processing of my information for the
+            purposes of this platform.
+          </span>
+        </label>
       </div>
 
       {error && (
-        <p className="text-red-400 text-sm font-medium mb-4" role="alert">
-          ⚠️ {error}
+        <p role="alert" className="text-sm text-red-400">
+          {error}
         </p>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex justify-between gap-3">
         <button
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="px-6 py-3 rounded-xl font-semibold bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50"
+          className="px-5 py-2 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800 disabled:opacity-50"
         >
           Back
         </button>
+
         <button
           type="button"
           onClick={handleFinalSubmit}
           disabled={isSubmitting}
-          className="flex-1 py-3 rounded-xl font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/40 disabled:opacity-50"
+          className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50"
         >
-          {isSubmitting ? 'Registering...' : 'Complete Registration & Enter Career Gateway'}
+          {isSubmitting ? 'Submitting...' : 'Complete Registration'}
         </button>
       </div>
-    </section>
+    </div>
   );
 }
