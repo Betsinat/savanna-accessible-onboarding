@@ -16,7 +16,9 @@ export default function JobsView({ formData = {}, sessionId }) {
         const response = await fetchJobs();
 
         if (!response.success || !Array.isArray(response.jobs)) {
-          throw new Error(response.message || 'Invalid jobs response from server.');
+          throw new Error(
+            response.message || 'Invalid jobs response from server.'
+          );
         }
 
         setJobs(response.jobs);

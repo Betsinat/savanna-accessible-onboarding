@@ -43,6 +43,10 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleSuccess = () => {
+    onSuccess({ formData, sessionId });
+  };
+
   // Calculate progress percentage for the top progress bar
   const progressPercentage = (currentStep / 4) * 100;
 
@@ -126,7 +130,7 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
               updateFormData={updateFormData}
               sessionId={sessionId}
               onBack={handleBack}
-              onSuccess={onSuccess}
+              onSuccess={handleSuccess}
             />
           )}
         </div>
