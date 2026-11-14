@@ -8,6 +8,12 @@ const JobSchema = new mongoose.Schema({
     trim: true,
     maxlength: 150
   },
+company: {
+  type: String,
+  required: true,
+  trim: true,
+  maxlength: 150
+},
   description: {
     type: String,
     required: true,

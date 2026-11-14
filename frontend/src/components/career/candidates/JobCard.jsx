@@ -1,6 +1,13 @@
 
 import React, { useState } from 'react';
 
+const accommodationLabels = {
+  screen_reader_compatible: 'Screen reader compatible',
+  flexible_hours: 'Flexible working hours',
+  remote_work: 'Remote work',
+  captioned_meetings: 'Captioned meetings'
+};
+
 export default function JobCard({ job }) {
   const [showDetails, setShowDetails] = useState(false);
 
@@ -8,33 +15,39 @@ export default function JobCard({ job }) {
   const requirements = job.requirements || [];
 
   return (
-    <article className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-lg">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-        <div className="space-y-2">
+    <article className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-lg hover:border-gray-700 transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="min-w-0">
           <h2 className="text-xl font-bold text-white">
             {job.title}
           </h2>
 
+          {job.company && (
+            <p className="text-blue-300 font-medium mt-1">
+              {job.company}
+            </p>
+          )}
+
           {job.location && (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 mt-2">
               <span aria-hidden="true">📍 </span>
               {job.location}
             </p>
           )}
-
-          <p className="text-sm text-gray-300 leading-relaxed">
-            {job.description}
-          </p>
         </div>
 
-        <span className="text-xs font-medium text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full whitespace-nowrap">
+        <span className="text-xs font-semibold text-emerald-300 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1.5 rounded-full whitespace-nowrap">
           Active
         </span>
       </div>
 
+      <p className="text-sm text-gray-300 leading-relaxed mt-5">
+        {job.description}
+      </p>
+
       {accommodations.length > 0 && (
-        <div className="mt-5">
-          <h3 className="text-sm font-semibold text-gray-200 mb-2">
+        <section className="mt-6">
+          <h3 className="text-sm font-semibold text-gray-200 mb-3">
             Workplace accommodations
           </h3>
 
@@ -42,44 +55,45 @@ export default function JobCard({ job }) {
             {accommodations.map((item) => (
               <span
                 key={item}
-                className="text-xs bg-gray-950 border border-gray-700 text-emerald-300 px-3 py-1.5 rounded-lg"
+                className="text-xs bg-emerald-400/10 border border-emerald-400/20 text-emerald-200 px-3 py-2 rounded-lg"
               >
-                {item.replaceAll('_', ' ')}
+                {accommodationLabels[item] || item.replaceAll('_', ' ')}
               </span>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      <button
-        type="button"
-        onClick={() => setShowDetails((previous) => !previous)}
-        aria-expanded={showDetails}
-        className="mt-5 text-sm font-semibold text-blue-400 hover:text-blue-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-400 rounded"
-      >
-        {showDetails ? 'Hide details' : 'View requirements and details'}
-      </button>
+      {requirements.length > 0 && (
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={() => setShowDetails((previous) => !previous)}
+            aria-expanded={showDetails}
+            className="text-sm font-semibold text-blue-300 hover:text-blue-200 transition-colors"
+          >
+            {showDetails ? 'Hide requirements' : 'View requirements'}
+            <span aria-hidden="true" className="ml-2">
+              {showDetails ? '−' : '+'}
+            </span>
+          </button>
 
-      {showDetails && (
-        <div className="mt-4 pt-4 border-t border-gray-800">
-          <h3 className="text-sm font-semibold text-white mb-2">
-            Requirements
-          </h3>
-
-          {requirements.length > 0 ? (
-            <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">
+          {showDetails && (
+            <ul className="mt-3 space-y-2 list-disc list-inside text-sm text-gray-300">
               {requirements.map((requirement, index) => (
-                <li key={`${index}-${requirement}`}>
+                <li key={`${requirement}-${index}`}>
                   {requirement}
                 </li>
               ))}
             </ul>
-          ) : (
-            <p className="text-sm text-gray-400">
-              No specific requirements listed.
-            </p>
           )}
         </div>
+      )}
+
+      {accommodations.length === 0 && requirements.length === 0 && (
+        <p className="text-xs text-gray-500 mt-5">
+          More job details may be provided by the employer.
+        </p>
       )}
     </article>
   );
