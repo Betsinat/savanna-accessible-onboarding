@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { usePersistentState } from '../hooks/userPersistentState';
 import { saveOnboardingDraft } from '../services/api';
 import StepPersonal from './steps/StepPersonal';
+import StepIdentity from './steps/StepIdentity';
+import StepSupport from './steps/StepSupport';
+import StepReview from './steps/StepReview';
 
-export default function Wizard() {
+export default function Wizard({ onSuccess }) {
   const [sessionId] = usePersistentState('savanna_session_id', `session-${Date.now()}`);
   const [currentStep, setCurrentStep] = usePersistentState('savanna_current_step', 1);
   const [formData, setFormData] = usePersistentState('savanna_form_data', {});
@@ -45,73 +48,86 @@ export default function Wizard() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  // Calculate progress percentage for the top progress bar
+  const progressPercentage = (currentStep / 4) * 100;
+
   return (
-    <div className="min-h-screen bg-[#0f1117] text-white flex flex-col justify-between p-6 md:p-12">
-      {/* Top Header */}
-      <header className="w-full max-w-3xl mx-auto flex justify-between items-center border-b border-gray-800 pb-4">
+    <div className="min-h-screen bg-[#0b0e14] text-white flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+      {/* Top Progress Bar */}
+      <div className="w-full bg-gray-900 h-1.5">
+        <div 
+          className="bg-gradient-to-r from-blue-500 to-emerald-400 h-1.5 transition-all duration-500 ease-out"
+          style={{ width: `${progressPercentage}%` }}
+        />
+      </div>
+
+      {/* Header Container */}
+      <header className="w-full max-w-3xl mx-auto px-6 pt-8 pb-4 flex justify-between items-center border-b border-gray-800/60">
         <div>
-          <h1 className="text-xl font-extrabold tracking-tight text-blue-400">Savanna Onboarding</h1>
-          <p className="text-xs text-gray-500 font-mono">Session: {sessionId}</p>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+            <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+              Savanna Onboarding
+            </h1>
+          </div>
+          <p className="text-xs text-gray-500 font-mono mt-0.5">Session ID: {sessionId}</p>
         </div>
         <div className="text-right">
-          <span className="text-sm font-medium text-gray-400">Step {currentStep} of 4</span>
-          <p className="text-xs text-emerald-400">{isSaving ? 'Saving...' : saveStatus}</p>
+          <span className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-gray-900 border border-gray-800 text-gray-300">
+            Step {currentStep} of 4
+          </span>
+          <p className="text-xs text-emerald-400 mt-1.5 font-medium">{isSaving ? 'Syncing...' : saveStatus}</p>
         </div>
       </header>
 
-      {/* Main Dynamic Step Container */}
-      <main className="w-full max-w-3xl mx-auto my-auto bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
-        {currentStep === 1 && (
-          <StepPersonal
-            formData={formData}
-            updateFormData={updateFormData}
-            onNext={handleNext}
-          />
-        )}
-        {currentStep === 2 && (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-2">Step 2: Alternative Identity Route</h2>
-            <p className="text-gray-400">Coming up next!</p>
-            <button
-              onClick={handleBack}
-              className="mt-6 px-6 py-2 bg-gray-800 rounded-xl hover:bg-gray-700"
-            >
-              Back
-            </button>
-          </div>
-        )}
-        {currentStep === 3 && (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-2">Step 3: Confidential Support</h2>
-            <p className="text-gray-400">Coming up next!</p>
-            <button
-              onClick={handleBack}
-              className="mt-6 px-6 py-2 bg-gray-800 rounded-xl hover:bg-gray-700"
-            >
-              Back
-            </button>
-          </div>
-        )}
-        {currentStep === 4 && (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-2">Step 4: Review & Submit</h2>
-            <p className="text-gray-400">Coming up next!</p>
-            <button
-              onClick={handleBack}
-              className="mt-6 px-6 py-2 bg-gray-800 rounded-xl hover:bg-gray-700"
-            >
-              Back
-            </button>
-          </div>
-        )}
+      {/* Main Glass/Card Container */}
+      <main className="w-full max-w-3xl mx-auto px-6 my-auto py-6">
+        <div className="bg-gray-900/80 backdrop-blur-xl border border-gray-800/80 rounded-3xl p-8 md:p-10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
+          {currentStep === 1 && (
+            <StepPersonal
+              formData={formData}
+              updateFormData={updateFormData}
+              onNext={handleNext}
+            />
+          )}
+          
+          {currentStep === 2 && (
+            <StepIdentity
+              formData={formData}
+              updateFormData={updateFormData}
+              onNext={handleNext}
+              onBack={handleBack}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <StepSupport
+              formData={formData}
+              updateFormData={updateFormData}
+              onNext={handleNext}
+              onBack={handleBack}
+            />
+          )}
+
+          {currentStep === 4 && (
+            <StepReview
+              formData={formData}
+              updateFormData={updateFormData}
+              sessionId={sessionId}
+              onBack={handleBack}
+              onSuccess={onSuccess}
+            />
+          )}
+        </div>
       </main>
 
       {/* Footer Info */}
-      <footer className="w-full max-w-3xl mx-auto flex justify-between items-center pt-4 border-t border-gray-800">
-        <div className="text-xs text-gray-500 font-mono">
-          Form Data State: {JSON.stringify(formData)}
+      <footer className="w-full max-w-3xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-2 border-t border-gray-800/60 text-xs text-gray-500">
+        <div className="font-mono truncate max-w-xs md:max-w-md">
+          State: <span className="text-gray-400">{JSON.stringify(formData)}</span>
         </div>
-        <div className="text-xs text-gray-500">
+        <div className="flex items-center gap-1.5 text-emerald-400/90">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
           Zero-Timeout Offline-First Sync Active
         </div>
       </footer>
