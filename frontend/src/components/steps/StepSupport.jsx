@@ -45,7 +45,7 @@ export default function StepSupport({ field, formData, updateFormData, error, in
   if (field === 'preferredContactMethod') {
     return (
       <fieldset>
-        <legend className="sr-only">Preferred contact method</legend>
+        <legend className="sr-only">Contact method</legend>
         <div className="flex gap-4">
           {['phone', 'sms', 'email'].map((method) => (
             <label key={method} className="flex items-center gap-2 cursor-pointer bg-gray-950 border border-gray-800 px-4 py-3 rounded-xl flex-1 justify-center">
@@ -79,7 +79,6 @@ export default function StepSupport({ field, formData, updateFormData, error, in
         id="additionalNotes"
         label="Additional Notes (Optional)"
         type="textarea"
-        placeholder="Share any specific details or preferences..."
         value={formData.additionalNotes || ''}
         error={error}
         inputRef={inputRef}

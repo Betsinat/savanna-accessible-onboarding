@@ -67,7 +67,6 @@ export default function StepIdentity({ mode, formData, updateFormData, error, in
           label="Trusted Proxy / Representative Name"
           type="text"
           required
-          placeholder="Enter proxy or contact name"
           value={formData.idDetails?.proxyName || ''}
           error={error}
           inputRef={inputRef}

@@ -20,7 +20,7 @@ export default function StepAccommodations({ formData, updateFormData }) {
 
   return (
     <fieldset>
-      <legend className="sr-only">Workplace accommodations</legend>
+      <legend className="sr-only">Available accommodations</legend>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {ACCOMMODATIONS.map(({ id, label }) => (
           <label

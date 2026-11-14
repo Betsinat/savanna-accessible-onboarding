@@ -13,68 +13,60 @@ const QUESTIONS = [
   {
     id: 'fullName',
     title: 'What is your full name?',
-    description: 'Enter the name you would like us to use.',
     Component: StepPersonal,
     props: { field: 'fullName' },
   },
   {
     id: 'phoneOrEmail',
     title: 'How can we reach you?',
-    description: 'Provide a phone number or email address.',
     Component: StepPersonal,
     props: { field: 'phoneOrEmail' },
   },
   {
     id: 'idRoute',
     title: 'How would you like to verify your identity?',
-    description: 'Choose one identity route.',
     Component: StepIdentity,
     props: { mode: 'route' },
   },
   {
     id: 'identityDetails',
-    title: 'What is your identity document or representative detail?',
-    description: 'Enter the detail for the identity route you selected.',
+    title: 'What is your ID number or document reference?',
     Component: StepIdentity,
     props: { mode: 'details' },
   },
   {
     id: 'supportType',
     title: 'What kind of support would help you?',
-    description: 'Choose the type of onboarding support you prefer.',
     Component: StepSupport,
     props: { field: 'supportType' },
   },
   {
     id: 'preferredContactMethod',
-    title: 'How should we contact you?',
-    description: 'Choose your preferred contact method.',
+    title: 'What is your preferred contact method?',
     Component: StepSupport,
     props: { field: 'preferredContactMethod' },
   },
   {
     id: 'additionalNotes',
-    title: 'Would you like to share any additional notes?',
-    description: 'This question is optional.',
+    title: 'Would you like to add any notes?',
     Component: StepSupport,
     props: { field: 'additionalNotes' },
   },
   {
     id: 'accommodations',
     title: 'Which workplace accommodations would help you?',
-    description: 'Select any options that may be useful. This question is optional.',
+    description: 'Optional. Select any that apply.',
     Component: StepAccommodations,
   },
   {
     id: 'consent',
-    title: 'Do you consent to saving your onboarding information?',
+    title: 'Do you consent to saving your information?',
     description: 'Consent is required to complete registration.',
     Component: StepConsent,
   },
   {
     id: 'review',
-    title: 'Review your information before continuing.',
-    description: 'Check the summary, then continue to complete registration.',
+    title: 'Review your information.',
     Component: StepReview,
   },
 ];
@@ -321,12 +313,14 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
 
       <main className="w-full max-w-3xl mx-auto px-6 my-auto py-6">
         <div className="bg-gray-900/80 backdrop-blur-xl border border-gray-800/80 rounded-3xl p-8 md:p-10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
-          <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold mb-2">
+          <h1 id="wizard-question-heading" ref={headingRef} tabIndex={-1} className="text-2xl font-bold mb-2">
             {question.id === 'identityDetails' && formData.idRoute === 'alternative_route'
               ? 'What is your trusted representative’s name?'
               : question.title}
           </h1>
-          <p className="text-gray-400 mb-6">{question.description}</p>
+          {question.description && (
+            <p className="text-gray-400 mb-6">{question.description}</p>
+          )}
           <QuestionComponent
             {...question.props}
             formData={formData}
@@ -356,7 +350,11 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
               disabled={isSubmitting}
               className="px-8 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50"
             >
-              {isSubmitting ? 'Submitting...' : 'Continue'}
+              {isSubmitting
+                ? 'Submitting...'
+                : question.id === 'review'
+                  ? 'Complete Registration'
+                  : 'Continue'}
             </button>
           </div>
         </div>
