@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const candidateRoutes = require('./routes/candidates');
+const jobRoutes = require('./routes/jobs');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
@@ -29,6 +30,7 @@ app.get('/api/health', (req, res) => {
 // API routes
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/candidates', candidateRoutes);
+app.use('/api', jobRoutes);
 
 // Start server
 const startServer = async () => {
