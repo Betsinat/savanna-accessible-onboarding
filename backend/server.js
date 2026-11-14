@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const candidateRoutes = require('./routes/candidates');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
@@ -27,6 +28,7 @@ app.get('/api/health', (req, res) => {
 
 // API routes
 app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/candidates', candidateRoutes);
 
 // Start server
 const startServer = async () => {
