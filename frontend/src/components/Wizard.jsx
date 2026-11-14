@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { usePersistentState } from '../hooks/usePersistentState';
+import { usePersistentState } from '../hooks/userPersistentState';
 import { saveOnboardingDraft } from '../services/api';
 
 export default function Wizard() {
