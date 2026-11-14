@@ -79,9 +79,21 @@ const QUESTIONS = [
   },
 ];
 
+function isValidPhoneOrEmail(value) {
+  if (typeof value !== 'string') return false;
+
+  const normalized = value.trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const phonePattern = /^\+?[\d\s().-]+$/;
+  const digitCount = normalized.replace(/\D/g, '').length;
+
+  return emailPattern.test(normalized) ||
+    (phonePattern.test(normalized) && digitCount >= 7 && digitCount <= 15);
+}
+
 function getInitialQuestionIndex(formData) {
-  if (!formData.fullName?.trim()) return 0;
-  if (!formData.phoneOrEmail?.trim()) return 1;
+  if (typeof formData.fullName !== 'string' || !formData.fullName.trim()) return 0;
+  if (!formData.phoneOrEmail || !isValidPhoneOrEmail(formData.phoneOrEmail)) return 1;
   if (!['standard_id', 'alternative_route'].includes(formData.idRoute)) return 2;
 
   const identityDetails = formData.idDetails || {};
@@ -98,13 +110,18 @@ function getInitialQuestionIndex(formData) {
 function getValidationError(questionId, formData) {
   switch (questionId) {
     case 'fullName':
-      return formData.fullName?.trim()
+      return typeof formData.fullName === 'string' && formData.fullName.trim()
         ? null
         : { control: 'fullName', message: 'Please enter your full name.' };
-    case 'phoneOrEmail':
-      return formData.phoneOrEmail?.trim()
+    case 'phoneOrEmail': {
+      const value = typeof formData.phoneOrEmail === 'string' ? formData.phoneOrEmail : '';
+      if (!value.trim()) {
+        return { control: 'phoneOrEmail', message: 'Please enter a phone number or email address.' };
+      }
+      return isValidPhoneOrEmail(value)
         ? null
-        : { control: 'phoneOrEmail', message: 'Please enter a phone number or email address.' };
+        : { control: 'phoneOrEmail', message: 'Enter a valid email address or phone number.' };
+    }
     case 'idRoute':
       return ['standard_id', 'alternative_route'].includes(formData.idRoute)
         ? null
@@ -129,6 +146,10 @@ function getValidationError(questionId, formData) {
       return formData.consentGiven
         ? null
         : { control: 'consentGiven', message: 'Please provide consent to continue.' };
+    case 'review':
+      return formData.consentGiven
+        ? null
+        : { control: 'consentGiven', message: 'Please provide consent to complete registration.' };
     default:
       return null;
   }
@@ -200,6 +221,9 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
     if (error) {
       setSubmissionError('');
       setValidationError(error);
+      if (question.id === 'review' && error.control === 'consentGiven') {
+        setStoredQuestionIndex(8);
+      }
       return;
     }
 
@@ -220,7 +244,7 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
         supportType: formData.supportType || 'general_guidance',
         preferredContactMethod: formData.preferredContactMethod || 'phone',
         additionalNotes: formData.additionalNotes || '',
-        consentGiven: true,
+        consentGiven: Boolean(formData.consentGiven),
         accommodationPreferences: Array.isArray(formData.accommodationPreferences)
           ? formData.accommodationPreferences
           : [],

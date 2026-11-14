@@ -17,6 +17,12 @@ export default function StepReview({ formData }) {
         <span className="text-gray-400">Support Type:</span>
         <span className="font-semibold text-white capitalize">{formData.supportType || 'None selected'}</span>
       </div>
+      <div className="flex justify-between border-t border-gray-800 pt-2">
+        <span className="text-gray-400">Consent:</span>
+        <span className="font-semibold text-white">
+          {formData.consentGiven ? 'Provided' : 'Not provided'}
+        </span>
+      </div>
     </section>
   );
 }

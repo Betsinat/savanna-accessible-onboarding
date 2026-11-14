@@ -9,6 +9,7 @@ export default function VoiceInput({
   type,
   error = '',
   inputRef,
+  required = false,
 }) {
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState('');
@@ -60,6 +61,8 @@ export default function VoiceInput({
     placeholder,
     value: value || '',
     ref: inputRef,
+    required,
+    'aria-required': required,
     'aria-invalid': Boolean(error),
     'aria-describedby': describedBy,
     onChange: (event) => onChange(event.target.value),

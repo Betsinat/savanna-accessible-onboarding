@@ -52,6 +52,7 @@ export default function StepIdentity({ mode, formData, updateFormData, error, in
           id="idNumber"
           label="ID Number / Reference"
           type="text"
+          required
           placeholder="e.g. AAU/1234/20"
           value={formData.idDetails?.idNumber || ''}
           error={error}
@@ -65,6 +66,7 @@ export default function StepIdentity({ mode, formData, updateFormData, error, in
           id="proxyName"
           label="Trusted Proxy / Representative Name"
           type="text"
+          required
           placeholder="Enter proxy or contact name"
           value={formData.idDetails?.proxyName || ''}
           error={error}

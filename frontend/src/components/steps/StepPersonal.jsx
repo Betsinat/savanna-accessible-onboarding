@@ -21,6 +21,7 @@ export default function StepPersonal({ field, formData, updateFormData, error, i
       <VoiceInput
         {...question}
         type="text"
+        required
         value={formData[field] || ''}
         error={error}
         inputRef={inputRef}

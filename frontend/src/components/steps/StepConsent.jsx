@@ -6,6 +6,7 @@ export default function StepConsent({ formData, updateFormData, error, inputRef 
           ref={inputRef}
           type="checkbox"
           id="consentGiven"
+          required
           checked={Boolean(formData.consentGiven)}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? 'consentGiven-error' : undefined}
