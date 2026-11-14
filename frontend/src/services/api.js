@@ -38,3 +38,7 @@ export const applyToJob = async (payload) => {
   const response = await API.post('/jobs/apply', payload);
   return response.data;
 };
+export const createEmployerJob = async (payload) => {
+  const response = await API.post('/employer/jobs', payload);
+  return response.data;
+};

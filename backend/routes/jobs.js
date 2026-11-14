@@ -1,6 +1,5 @@
 
 const express = require('express');
-const crypto = require('crypto');
 const mongoose = require('mongoose');
 
 const Job = require('../models/job');
@@ -8,35 +7,6 @@ const JobApplication = require('../models/jobApplication');
 const OnboardingProfile = require('../models/onboardingProfile');
 
 const router = express.Router();
-
-// Check whether an employer has provided the correct API key
-const verifyEmployerKey = (req, res, next) => {
-  const providedKey = req.headers['x-partner-key'];
-  const actualKey = process.env.PARTNER_API_KEY;
-
-  if (!actualKey) {
-    return res.status(503).json({
-      success: false,
-      message: 'Employer API authentication is not configured'
-    });
-  }
-
-  if (
-    typeof providedKey !== 'string' ||
-    Buffer.byteLength(providedKey) !== Buffer.byteLength(actualKey) ||
-    !crypto.timingSafeEqual(
-      Buffer.from(providedKey),
-      Buffer.from(actualKey)
-    )
-  ) {
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid or missing employer API key'
-    });
-  }
-
-  next();
-};
 
 // GET /api/jobs
 // Retrieve active jobs and filter by candidate accommodations
@@ -221,31 +191,36 @@ router.post('/jobs/apply', async (req, res) => {
 });
 
 // POST /api/employer/jobs
-// Publish a job using employer API-key authentication
-router.post('/employer/jobs', verifyEmployerKey, async (req, res) => {
+// Publish a job through the open hackathon demo
+router.post('/employer/jobs', async (req, res) => {
   try {
     const {
       title,
+      company,
       description,
       requirements,
       offeredAccommodations,
-      location,
-      status
+      location
     } = req.body;
 
     if (
       typeof title !== 'string' ||
       !title.trim() ||
+      typeof company !== 'string' ||
+      !company.trim() ||
       typeof description !== 'string' ||
       !description.trim() ||
       (requirements !== undefined &&
         (!Array.isArray(requirements) ||
-          !requirements.every(item => typeof item === 'string'))) ||
+          !requirements.every(item =>
+            typeof item === 'string' && item.trim()
+          ))) ||
       (offeredAccommodations !== undefined &&
         (!Array.isArray(offeredAccommodations) ||
-          !offeredAccommodations.every(item => typeof item === 'string'))) ||
-      (status !== undefined &&
-        !['active', 'inactive', 'closed'].includes(status))
+          !offeredAccommodations.every(item =>
+            typeof item === 'string' && item.trim()
+          ))) ||
+      (location !== undefined && typeof location !== 'string')
     ) {
       return res.status(400).json({
         success: false,
@@ -255,11 +230,12 @@ router.post('/employer/jobs', verifyEmployerKey, async (req, res) => {
 
     const job = new Job({
       title: title.trim(),
+      company: company.trim(),
       description: description.trim(),
-      requirements,
-      offeredAccommodations,
-      location,
-      status
+      requirements: (requirements || []).map(item => item.trim()),
+      offeredAccommodations: (offeredAccommodations || []).map(item => item.trim()),
+      location: location?.trim() || 'Not specified',
+      status: 'active'
     });
 
     await job.save();
