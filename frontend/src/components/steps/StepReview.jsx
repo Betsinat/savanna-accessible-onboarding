@@ -39,8 +39,15 @@ export default function StepReview({ formData, updateFormData, sessionId, onBack
       };
 
       await registerCandidate(payload);
-      setIsSubmitting(false);
-      onSuccess();
+
+    onSuccess({
+      formData: {
+        ...formData,
+        consentGiven: true,
+        accommodationPreferences: accommodations,
+      },
+      sessionId,
+    });
     } catch (err) {
       console.error('Registration failed:', err);
       setError('Failed to complete registration. Please check your connection and try again.');
