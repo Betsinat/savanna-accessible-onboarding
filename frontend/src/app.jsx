@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePersistentState } from './hooks/userPersistentState';
 import { registerCandidate } from './services/api';
 import JobsView from './components/JobsView';
+import AccessibilityToolbar from './components/AccessibilityToolbar'; // 1. IMPORT IT HERE
 
 const QUESTIONS = [
   {
@@ -59,7 +60,6 @@ export default function App() {
     if (currentStep < QUESTIONS.length - 1) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      // Final step reached! Register candidate to backend and transition to JobsView
       setIsSubmitting(true);
       try {
         await registerCandidate({
@@ -71,7 +71,6 @@ export default function App() {
         setIsCompleted(true);
       } catch (err) {
         console.error('Backend registration failed, but proceeding locally:', err);
-        // Fallback so the user isn't blocked if backend has a hiccup
         setIsCompleted(true);
       } finally {
         setIsSubmitting(false);
@@ -86,87 +85,92 @@ export default function App() {
     }
   };
 
-  // If onboarding is complete, render the Career Gateway JobsView!
-  if (isCompleted) {
-    return <JobsView formData={formData} sessionId={sessionId} />;
-  }
-
   return (
-    <main className="min-h-screen bg-[#111318] text-white flex flex-col justify-between p-6 md:p-12">
-      {/* Header / Progress */}
-      <header className="w-full max-w-2xl mx-auto flex justify-between items-center border-b border-gray-800 pb-4">
-        <h1 className="text-xl font-bold tracking-wide text-blue-400">Savanna Accessible Onboarding</h1>
-        <span className="text-sm text-gray-400">
-          Step {currentStep + 1} of {QUESTIONS.length}
-        </span>
-      </header>
+    <div className="relative min-h-screen bg-[#111318] text-white">
+      {/* 2. GLOBAL ACCESSIBILITY TOOLBAR PLACED HERE */}
+      <AccessibilityToolbar />
 
-      {/* Wizard Card (One Question Per Screen) */}
-      <section className="w-full max-w-2xl mx-auto my-auto bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
-        <h2 className="text-2xl md:text-3xl font-extrabold mb-3">{currentQuestion.title}</h2>
-        <p className="text-gray-400 text-sm md:text-base mb-6">{currentQuestion.subtitle}</p>
+      {/* Conditional Rendering: Either the Questionnaire Wizard or JobsView */}
+      {isCompleted ? (
+        <JobsView formData={formData} sessionId={sessionId} />
+      ) : (
+        <main className="min-h-screen flex flex-col justify-between p-6 md:p-12">
+          {/* Header / Progress */}
+          <header className="w-full max-w-2xl mx-auto flex justify-between items-center border-b border-gray-800 pb-4">
+            <h1 className="text-xl font-bold tracking-wide text-blue-400">Savanna Accessible Onboarding</h1>
+            <span className="text-sm text-gray-400">
+              Step {currentStep + 1} of {QUESTIONS.length}
+            </span>
+          </header>
 
-        {/* Input Field Rendering */}
-        {currentQuestion.type === 'text' && (
-          <input
-            type="text"
-            className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:border-blue-500 transition-all"
-            placeholder={currentQuestion.placeholder}
-            value={formData[currentQuestion.id] || ''}
-            onChange={(e) => handleInputChange(e.target.value)}
-            autoFocus
-          />
-        )}
+          {/* Wizard Card (One Question Per Screen) */}
+          <section className="w-full max-w-2xl mx-auto my-auto bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
+            <h2 className="text-2xl md:text-3xl font-extrabold mb-3">{currentQuestion.title}</h2>
+            <p className="text-gray-400 text-sm md:text-base mb-6">{currentQuestion.subtitle}</p>
 
-        {currentQuestion.type === 'select' && (
-          <div className="flex flex-col gap-3">
-            {currentQuestion.options.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => handleInputChange(opt.value)}
-                className={`w-full text-left px-5 py-4 rounded-xl border transition-all text-base font-medium ${
-                  formData[currentQuestion.id] === opt.value
-                    ? 'border-blue-500 bg-blue-950/40 text-blue-300'
-                    : 'border-gray-800 bg-gray-950 text-gray-300 hover:border-gray-600'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        )}
+            {/* Input Field Rendering */}
+            {currentQuestion.type === 'text' && (
+              <input
+                type="text"
+                className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:border-blue-500 transition-all"
+                placeholder={currentQuestion.placeholder}
+                value={formData[currentQuestion.id] || ''}
+                onChange={(e) => handleInputChange(e.target.value)}
+                autoFocus
+              />
+            )}
 
-        {/* Plain-Language Error Message */}
-        {error && (
-          <p className="mt-4 text-red-400 text-sm font-medium flex items-center gap-2" role="alert">
-            ⚠️ {error}
-          </p>
-        )}
-      </section>
+            {currentQuestion.type === 'select' && (
+              <div className="flex flex-col gap-3">
+                {currentQuestion.options.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleInputChange(opt.value)}
+                    className={`w-full text-left px-5 py-4 rounded-xl border transition-all text-base font-medium ${
+                      formData[currentQuestion.id] === opt.value
+                        ? 'border-blue-500 bg-blue-950/40 text-blue-300'
+                        : 'border-gray-800 bg-gray-950 text-gray-300 hover:border-gray-600'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
-      {/* Navigation Controls */}
-      <footer className="w-full max-w-2xl mx-auto flex justify-between items-center pt-4 border-t border-gray-800">
-        <button
-          onClick={handleBack}
-          disabled={currentStep === 0 || isSubmitting}
-          className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-            currentStep === 0
-              ? 'opacity-40 cursor-not-allowed bg-gray-800 text-gray-500'
-              : 'bg-gray-800 text-white hover:bg-gray-700'
-          }`}
-        >
-          Back
-        </button>
+            {/* Plain-Language Error Message */}
+            {error && (
+              <p className="mt-4 text-red-400 text-sm font-medium flex items-center gap-2" role="alert">
+                ⚠️ {error}
+              </p>
+            )}
+          </section>
 
-        <button
-          onClick={handleNext}
-          disabled={isSubmitting}
-          className="px-8 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40 disabled:opacity-50"
-        >
-          {isSubmitting ? 'Submitting...' : currentStep === QUESTIONS.length - 1 ? 'Review & Submit' : 'Next Question'}
-        </button>
-      </footer>
-    </main>
+          {/* Navigation Controls */}
+          <footer className="w-full max-w-2xl mx-auto flex justify-between items-center pt-4 border-t border-gray-800">
+            <button
+              onClick={handleBack}
+              disabled={currentStep === 0 || isSubmitting}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                currentStep === 0
+                  ? 'opacity-40 cursor-not-allowed bg-gray-800 text-gray-500'
+                  : 'bg-gray-800 text-white hover:bg-gray-700'
+              }`}
+            >
+              Back
+            </button>
+
+            <button
+              onClick={handleNext}
+              disabled={isSubmitting}
+              className="px-8 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Submitting...' : currentStep === QUESTIONS.length - 1 ? 'Review & Submit' : 'Next Question'}
+            </button>
+          </footer>
+        </main>
+      )}
+    </div>
   );
 }
