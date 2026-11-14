@@ -98,32 +98,39 @@ function getInitialQuestionIndex(formData) {
 function getValidationError(questionId, formData) {
   switch (questionId) {
     case 'fullName':
-      return formData.fullName?.trim() ? '' : 'Please enter your full name.';
+      return formData.fullName?.trim()
+        ? null
+        : { control: 'fullName', message: 'Please enter your full name.' };
     case 'phoneOrEmail':
-      return formData.phoneOrEmail?.trim() ? '' : 'Please enter a phone number or email address.';
+      return formData.phoneOrEmail?.trim()
+        ? null
+        : { control: 'phoneOrEmail', message: 'Please enter a phone number or email address.' };
     case 'idRoute':
       return ['standard_id', 'alternative_route'].includes(formData.idRoute)
-        ? ''
-        : 'Please choose an identity route.';
+        ? null
+        : { control: 'idRoute', message: 'Please choose an identity route.' };
     case 'identityDetails': {
       const identityDetails = formData.idDetails || {};
-      const value = formData.idRoute === 'alternative_route'
-        ? identityDetails.proxyName
-        : identityDetails.idNumber;
-      return value?.trim() ? '' : 'Please provide the requested identity detail.';
+      const control = formData.idRoute === 'alternative_route' ? 'proxyName' : 'idNumber';
+      const value = control === 'proxyName' ? identityDetails.proxyName : identityDetails.idNumber;
+      return value?.trim()
+        ? null
+        : { control, message: 'Please provide the requested identity detail.' };
     }
     case 'supportType':
-      return formData.supportType?.trim() ? '' : 'Please choose a support option.';
+      return formData.supportType?.trim()
+        ? null
+        : { control: 'supportType', message: 'Please choose a support option.' };
     case 'preferredContactMethod':
       return formData.preferredContactMethod
-        ? ''
-        : 'Please choose a preferred contact method.';
+        ? null
+        : { control: 'preferredContactMethod', message: 'Please choose a preferred contact method.' };
     case 'consent':
       return formData.consentGiven
-        ? ''
-        : 'Please provide consent to continue.';
+        ? null
+        : { control: 'consentGiven', message: 'Please provide consent to continue.' };
     default:
-      return '';
+      return null;
   }
 }
 
@@ -135,8 +142,10 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
-  const [validationError, setValidationError] = useState('');
+  const [validationError, setValidationError] = useState(null);
+  const [submissionError, setSubmissionError] = useState('');
   const headingRef = useRef(null);
+  const invalidControlRef = useRef(null);
   const currentQuestionIndex = Number.isInteger(storedQuestionIndex)
     ? Math.min(Math.max(storedQuestionIndex, 0), QUESTIONS.length - 1)
     : 0;
@@ -152,6 +161,12 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
   useEffect(() => {
     headingRef.current?.focus();
   }, [currentQuestionIndex]);
+
+  useEffect(() => {
+    if (validationError) {
+      invalidControlRef.current?.focus();
+    }
+  }, [validationError]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -175,18 +190,20 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
   }, [currentQuestionIndex, formData, sessionId]);
 
   const handleBack = () => {
-    setValidationError('');
+    setValidationError(null);
+    setSubmissionError('');
     setStoredQuestionIndex((index) => Math.max(index - 1, 0));
   };
 
   const handleContinue = async () => {
     const error = getValidationError(question.id, formData);
     if (error) {
+      setSubmissionError('');
       setValidationError(error);
       return;
     }
 
-    setValidationError('');
+    setValidationError(null);
     if (question.id !== 'review') {
       setStoredQuestionIndex((index) => Math.min(index + 1, QUESTIONS.length - 1));
       return;
@@ -212,17 +229,26 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
       onSuccess({ formData, sessionId });
     } catch (err) {
       console.error('Registration failed:', err);
-      setValidationError('Failed to complete registration. Please check your connection and try again.');
+      setSubmissionError('Failed to complete registration. Please check your connection and try again.');
       setIsSubmitting(false);
     }
   };
 
   const handleFormDataChange = (key, value) => {
     updateFormData(key, value);
-    setValidationError('');
+    setValidationError(null);
+    setSubmissionError('');
   };
 
   const progressPercentage = ((currentQuestionIndex + 1) / QUESTIONS.length) * 100;
+  const activeErrorControl = question.id === 'identityDetails'
+    ? (formData.idRoute === 'alternative_route' ? 'proxyName' : 'idNumber')
+    : question.id === 'consent'
+      ? 'consentGiven'
+      : question.id;
+  const activeError = validationError?.control === activeErrorControl
+    ? validationError.message
+    : '';
 
   return (
     <div className="min-h-screen bg-[#0b0e14] text-white flex flex-col justify-between selection:bg-blue-500 selection:text-white">
@@ -281,11 +307,13 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
             {...question.props}
             formData={formData}
             updateFormData={handleFormDataChange}
+            error={activeError}
+            inputRef={invalidControlRef}
           />
 
-          {validationError && (
+          {submissionError && (
             <p className="text-red-400 text-sm font-medium mt-4" role="alert">
-              {validationError}
+              {submissionError}
             </p>
           )}
 

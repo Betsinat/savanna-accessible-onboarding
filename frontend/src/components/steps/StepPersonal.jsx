@@ -13,7 +13,7 @@ const personalQuestions = {
   },
 };
 
-export default function StepPersonal({ field, formData, updateFormData }) {
+export default function StepPersonal({ field, formData, updateFormData, error, inputRef }) {
   const question = personalQuestions[field];
 
   return (
@@ -22,6 +22,8 @@ export default function StepPersonal({ field, formData, updateFormData }) {
         {...question}
         type="text"
         value={formData[field] || ''}
+        error={error}
+        inputRef={inputRef}
         onChange={(value) => updateFormData(field, value)}
       />
     </section>
