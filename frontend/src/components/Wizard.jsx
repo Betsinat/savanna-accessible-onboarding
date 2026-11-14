@@ -1,25 +1,165 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePersistentState } from '../hooks/userPersistentState';
-import { saveOnboardingDraft } from '../services/api';
+import { registerCandidate, saveOnboardingDraft } from '../services/api';
 import StepPersonal from './steps/StepPersonal';
 import StepIdentity from './steps/StepIdentity';
 import StepSupport from './steps/StepSupport';
+import StepAccommodations from './steps/StepAccommodations';
+import StepConsent from './steps/StepConsent';
 import StepReview from './steps/StepReview';
 import { speakText, stopSpeech } from '../utils/tts';
 
-export default function Wizard({ formData, updateFormData, onSuccess, sessionId }) {
-  const [currentStep, setCurrentStep] = usePersistentState('savanna_current_step', 1);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState('');
+const QUESTIONS = [
+  {
+    id: 'fullName',
+    title: 'What is your full name?',
+    description: 'Enter the name you would like us to use.',
+    Component: StepPersonal,
+    props: { field: 'fullName' },
+  },
+  {
+    id: 'phoneOrEmail',
+    title: 'How can we reach you?',
+    description: 'Provide a phone number or email address.',
+    Component: StepPersonal,
+    props: { field: 'phoneOrEmail' },
+  },
+  {
+    id: 'idRoute',
+    title: 'How would you like to verify your identity?',
+    description: 'Choose one identity route.',
+    Component: StepIdentity,
+    props: { mode: 'route' },
+  },
+  {
+    id: 'identityDetails',
+    title: 'What is your identity document or representative detail?',
+    description: 'Enter the detail for the identity route you selected.',
+    Component: StepIdentity,
+    props: { mode: 'details' },
+  },
+  {
+    id: 'supportType',
+    title: 'What kind of support would help you?',
+    description: 'Choose the type of onboarding support you prefer.',
+    Component: StepSupport,
+    props: { field: 'supportType' },
+  },
+  {
+    id: 'preferredContactMethod',
+    title: 'How should we contact you?',
+    description: 'Choose your preferred contact method.',
+    Component: StepSupport,
+    props: { field: 'preferredContactMethod' },
+  },
+  {
+    id: 'additionalNotes',
+    title: 'Would you like to share any additional notes?',
+    description: 'This question is optional.',
+    Component: StepSupport,
+    props: { field: 'additionalNotes' },
+  },
+  {
+    id: 'accommodations',
+    title: 'Which workplace accommodations would help you?',
+    description: 'Select any options that may be useful. This question is optional.',
+    Component: StepAccommodations,
+  },
+  {
+    id: 'consent',
+    title: 'Do you consent to saving your onboarding information?',
+    description: 'Consent is required to complete registration.',
+    Component: StepConsent,
+  },
+  {
+    id: 'review',
+    title: 'Review your information before continuing.',
+    description: 'Check the summary, then continue to complete registration.',
+    Component: StepReview,
+  },
+];
 
-  // Background auto-save simulation
+function getInitialQuestionIndex(formData) {
+  if (!formData.fullName?.trim()) return 0;
+  if (!formData.phoneOrEmail?.trim()) return 1;
+  if (!['standard_id', 'alternative_route'].includes(formData.idRoute)) return 2;
+
+  const identityDetails = formData.idDetails || {};
+  const hasIdentityDetails = formData.idRoute === 'alternative_route'
+    ? identityDetails.proxyName?.trim()
+    : identityDetails.idNumber?.trim();
+  if (!hasIdentityDetails) return 3;
+  if (!formData.supportType?.trim()) return 4;
+  if (!formData.preferredContactMethod) return 5;
+  if (!formData.consentGiven) return 8;
+  return 9;
+}
+
+function getValidationError(questionId, formData) {
+  switch (questionId) {
+    case 'fullName':
+      return formData.fullName?.trim() ? '' : 'Please enter your full name.';
+    case 'phoneOrEmail':
+      return formData.phoneOrEmail?.trim() ? '' : 'Please enter a phone number or email address.';
+    case 'idRoute':
+      return ['standard_id', 'alternative_route'].includes(formData.idRoute)
+        ? ''
+        : 'Please choose an identity route.';
+    case 'identityDetails': {
+      const identityDetails = formData.idDetails || {};
+      const value = formData.idRoute === 'alternative_route'
+        ? identityDetails.proxyName
+        : identityDetails.idNumber;
+      return value?.trim() ? '' : 'Please provide the requested identity detail.';
+    }
+    case 'supportType':
+      return formData.supportType?.trim() ? '' : 'Please choose a support option.';
+    case 'preferredContactMethod':
+      return formData.preferredContactMethod
+        ? ''
+        : 'Please choose a preferred contact method.';
+    case 'consent':
+      return formData.consentGiven
+        ? ''
+        : 'Please provide consent to continue.';
+    default:
+      return '';
+  }
+}
+
+export default function Wizard({ formData, updateFormData, onSuccess, sessionId }) {
+  const [storedQuestionIndex, setStoredQuestionIndex] = usePersistentState(
+    'savanna_current_question',
+    () => getInitialQuestionIndex(formData)
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('');
+  const [validationError, setValidationError] = useState('');
+  const headingRef = useRef(null);
+  const currentQuestionIndex = Number.isInteger(storedQuestionIndex)
+    ? Math.min(Math.max(storedQuestionIndex, 0), QUESTIONS.length - 1)
+    : 0;
+  const question = QUESTIONS[currentQuestionIndex];
+  const QuestionComponent = question.Component;
+
   useEffect(() => {
-    const autoSave = async () => {
+    if (storedQuestionIndex !== currentQuestionIndex) {
+      setStoredQuestionIndex(currentQuestionIndex);
+    }
+  }, [currentQuestionIndex, setStoredQuestionIndex, storedQuestionIndex]);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, [currentQuestionIndex]);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
       setIsSaving(true);
       try {
         await saveOnboardingDraft({
           sessionId,
-          currentStep,
+          currentStep: currentQuestionIndex + 1,
           formData,
           requestSmsLink: false,
         });
@@ -29,45 +169,77 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
       } finally {
         setIsSaving(false);
       }
-    };
+    }, 1000);
 
-    const timer = setTimeout(autoSave, 1000);
     return () => clearTimeout(timer);
-  }, [sessionId, currentStep, formData]);
-
-  const handleNext = () => {
-    setCurrentStep((prev) => Math.min(prev + 1, 4));
-  };
+  }, [currentQuestionIndex, formData, sessionId]);
 
   const handleBack = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setValidationError('');
+    setStoredQuestionIndex((index) => Math.max(index - 1, 0));
   };
 
-  const handleSuccess = () => {
-    onSuccess({ formData, sessionId });
+  const handleContinue = async () => {
+    const error = getValidationError(question.id, formData);
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+
+    setValidationError('');
+    if (question.id !== 'review') {
+      setStoredQuestionIndex((index) => Math.min(index + 1, QUESTIONS.length - 1));
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await registerCandidate({
+        sessionId,
+        fullName: formData.fullName,
+        phoneOrEmail: formData.phoneOrEmail,
+        idRoute: formData.idRoute || 'standard_id',
+        idDetails: formData.idDetails || {},
+        supportType: formData.supportType || 'general_guidance',
+        preferredContactMethod: formData.preferredContactMethod || 'phone',
+        additionalNotes: formData.additionalNotes || '',
+        consentGiven: true,
+        accommodationPreferences: Array.isArray(formData.accommodationPreferences)
+          ? formData.accommodationPreferences
+          : [],
+      });
+      setIsSubmitting(false);
+      onSuccess({ formData, sessionId });
+    } catch (err) {
+      console.error('Registration failed:', err);
+      setValidationError('Failed to complete registration. Please check your connection and try again.');
+      setIsSubmitting(false);
+    }
   };
 
-  // Calculate progress percentage for the top progress bar
-  const progressPercentage = (currentStep / 4) * 100;
+  const handleFormDataChange = (key, value) => {
+    updateFormData(key, value);
+    setValidationError('');
+  };
+
+  const progressPercentage = ((currentQuestionIndex + 1) / QUESTIONS.length) * 100;
 
   return (
     <div className="min-h-screen bg-[#0b0e14] text-white flex flex-col justify-between selection:bg-blue-500 selection:text-white">
-      {/* Top Progress Bar */}
-      <div className="w-full bg-gray-900 h-1.5">
-        <div 
+      <div className="w-full bg-gray-900 h-1.5" aria-hidden="true">
+        <div
           className="bg-gradient-to-r from-blue-500 to-emerald-400 h-1.5 transition-all duration-500 ease-out"
           style={{ width: `${progressPercentage}%` }}
         />
       </div>
 
-      {/* Header Container */}
       <header className="w-full max-w-3xl mx-auto px-6 pt-8 pb-4 flex justify-between items-center border-b border-gray-800/60">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
-            <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" aria-hidden="true" />
+            <p className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
               Savanna Onboarding
-            </h1>
+            </p>
           </div>
           <p className="text-xs text-gray-500 font-mono mt-0.5">Session ID: {sessionId}</p>
         </div>
@@ -78,7 +250,7 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
               onClick={() => speakText(document.querySelector('main')?.innerText || '')}
               className="text-xs font-medium px-2 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700"
             >
-              Read this step
+              Read this question
             </button>
             <button
               type="button"
@@ -88,61 +260,62 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
               Stop speaking
             </button>
           </div>
-          <span className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-gray-900 border border-gray-800 text-gray-300">
-            Step {currentStep} of 4
-          </span>
-          <p className="text-xs text-emerald-400 mt-1.5 font-medium">{isSaving ? 'Syncing...' : saveStatus}</p>
+          <p aria-live="polite" aria-atomic="true" className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-gray-900 border border-gray-800 text-gray-300">
+            Question {currentQuestionIndex + 1} of {QUESTIONS.length}
+          </p>
+          <p className="text-xs text-emerald-400 mt-1.5 font-medium" role="status">
+            {isSaving ? 'Syncing...' : saveStatus}
+          </p>
         </div>
       </header>
 
-      {/* Main Glass/Card Container */}
       <main className="w-full max-w-3xl mx-auto px-6 my-auto py-6">
         <div className="bg-gray-900/80 backdrop-blur-xl border border-gray-800/80 rounded-3xl p-8 md:p-10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
-          {currentStep === 1 && (
-            <StepPersonal
-              formData={formData}
-              updateFormData={updateFormData}
-              onNext={handleNext}
-            />
-          )}
-          
-          {currentStep === 2 && (
-            <StepIdentity
-              formData={formData}
-              updateFormData={updateFormData}
-              onNext={handleNext}
-              onBack={handleBack}
-            />
+          <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold mb-2">
+            {question.id === 'identityDetails' && formData.idRoute === 'alternative_route'
+              ? 'What is your trusted representative’s name?'
+              : question.title}
+          </h1>
+          <p className="text-gray-400 mb-6">{question.description}</p>
+          <QuestionComponent
+            {...question.props}
+            formData={formData}
+            updateFormData={handleFormDataChange}
+          />
+
+          {validationError && (
+            <p className="text-red-400 text-sm font-medium mt-4" role="alert">
+              {validationError}
+            </p>
           )}
 
-          {currentStep === 3 && (
-            <StepSupport
-              formData={formData}
-              updateFormData={updateFormData}
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          )}
-
-          {currentStep === 4 && (
-            <StepReview
-              formData={formData}
-              updateFormData={updateFormData}
-              sessionId={sessionId}
-              onBack={handleBack}
-              onSuccess={handleSuccess}
-            />
-          )}
+          <div className="flex justify-between gap-4 mt-8">
+            <button
+              type="button"
+              onClick={handleBack}
+              disabled={currentQuestionIndex === 0 || isSubmitting}
+              className="px-6 py-3 rounded-xl font-semibold bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-40"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={isSubmitting}
+              className="px-8 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Submitting...' : 'Continue'}
+            </button>
+          </div>
         </div>
       </main>
 
-      {/* Footer Info */}
       <footer className="w-full max-w-3xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-2 border-t border-gray-800/60 text-xs text-gray-500">
         <div className="font-mono truncate max-w-xs md:max-w-md">
           State: <span className="text-gray-400">{JSON.stringify(formData)}</span>
         </div>
         <div className="flex items-center gap-1.5 text-emerald-400/90">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
           Zero-Timeout Offline-First Sync Active
         </div>
       </footer>
