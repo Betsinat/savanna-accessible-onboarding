@@ -1,15 +1,46 @@
+
 const mongoose = require('mongoose');
 
 const JobApplicationSchema = new mongoose.Schema({
-  sessionId: { type: String, required: true },
-  jobId: { type: String, required: true },
-  candidateName: { type: String, required: true },
+  sessionId: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  jobId: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  candidateName: {
+    type: String,
+    required: true,
+    trim: true
+  },
   voiceAnswers: [{
-    questionId: { type: String },
-    audioTranscript: { type: String } // Text transcribed from voice input
+    questionId: {
+      type: String,
+      trim: true
+    },
+    audioTranscript: {
+      type: String,
+      trim: true,
+      maxlength: 10000
+    }
   }],
-  requestedAccommodations: [{ type: String }], // e.g., ['flexible_hours', 'remote_work', 'screen_reader_compatible']
-  submittedAt: { type: Date, default: Date.now }
+  requestedAccommodations: {
+    type: [String],
+    default: []
+  },
+  submittedAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-module.exports = mongoose.model('JobApplication', JobApplicationSchema);
+JobApplicationSchema.index({ sessionId: 1, jobId: 1 });
+
+module.exports = mongoose.model(
+  'JobApplication',
+  JobApplicationSchema
+);
