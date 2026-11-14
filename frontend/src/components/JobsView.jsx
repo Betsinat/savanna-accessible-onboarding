@@ -1,46 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { fetchJobs, applyToJob } from '../services/api';
 
-export default function JobsView({ formData, sessionId }) {
+import React, { useState, useEffect } from 'react';
+import { fetchJobs } from '../services/api';
+
+export default function JobsView({ formData = {}, sessionId }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [appliedJobs, setAppliedJobs] = useState({});
 
   useEffect(() => {
     const loadJobs = async () => {
       try {
+        setLoading(true);
+        setError('');
+
         const response = await fetchJobs();
-        setJobs(response.data || response || [
-          {
-            _id: 'job-1',
-            title: 'Accessibility Software Engineer',
-            company: 'Savanna Tech',
-            location: 'Remote / Addis Ababa',
-            accommodations: ['screen_reader_compatible', 'flexible_hours'],
-            description: 'Build inclusive, WCAG 2.2 AA compliant web experiences using the MERN stack.'
-          },
-          {
-            _id: 'job-2',
-            title: 'Frontend Developer (React)',
-            company: 'Inclusive Africa',
-            location: 'Remote',
-            accommodations: ['remote_work', 'captioned_meetings'],
-            description: 'Help develop modern React applications with a focus on screen-reader accessibility.'
-          }
-        ]);
+
+        if (!response.success || !Array.isArray(response.jobs)) {
+          throw new Error(response.message || 'Invalid jobs response from server.');
+        }
+
+        setJobs(response.jobs);
       } catch (err) {
         console.error('Failed to fetch jobs:', err);
-        setJobs([
-          {
-            _id: 'job-1',
-            title: 'Accessibility Software Engineer',
-            company: 'Savanna Tech',
-            location: 'Remote / Addis Ababa',
-            accommodations: ['screen_reader_compatible', 'flexible_hours'],
-            description: 'Build inclusive, WCAG 2.2 AA compliant web experiences using the MERN stack.'
-          }
-        ]);
+        setError(
+          err.response?.data?.message ||
+          err.message ||
+          'Failed to load job opportunities. Please try again.'
+        );
+        setJobs([]);
       } finally {
         setLoading(false);
       }
@@ -49,79 +36,100 @@ export default function JobsView({ formData, sessionId }) {
     loadJobs();
   }, []);
 
-  const handleApply = async (jobId) => {
-    try {
-      await applyToJob({
-        jobId,
-        sessionId,
-        candidateName: formData.fullName,
-        contact: formData.phoneOrEmail,
-        preferredAccommodations: formData.accommodationPreferences || [],
-      });
-      setAppliedJobs((prev) => ({ ...prev, [jobId]: true }));
-    } catch (err) {
-      console.error('Application failed:', err);
-      setError('Failed to submit application. Please try again.');
-    }
-  };
+  const formatAccommodation = (accommodation) =>
+    accommodation.replaceAll('_', ' ');
 
   return (
     <div className="min-h-screen bg-[#0b0e14] text-white p-6 md:p-12">
-      <header className="max-w-4xl mx-auto mb-8 border-b border-gray-800 pb-4 flex justify-between items-center">
+      <header className="max-w-4xl mx-auto mb-8 border-b border-gray-800 pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-blue-400">Career Gateway</h1>
-          <p className="text-sm text-gray-400">Welcome, {formData.fullName || 'Candidate'}! Browse accessible career opportunities below.</p>
-        </div>
-        <div className="text-xs font-mono bg-blue-600/20 border border-blue-500 text-blue-300 px-3 py-1.5 rounded-xl">
-          Profile Verified ✓
+          <h1 className="text-2xl font-extrabold tracking-tight text-blue-400">
+            Career Gateway
+          </h1>
+          <p className="text-sm text-gray-400 mt-2">
+            Welcome, {formData.fullName || 'Candidate'}! Browse accessible
+            career opportunities below.
+          </p>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto space-y-6">
-        {error && (
-          <p className="text-red-400 text-sm font-medium" role="alert">⚠️ {error}</p>
-        )}
-
         {loading ? (
-          <p className="text-gray-400 text-center py-12">Loading accessible job openings...</p>
+          <p className="text-gray-400 text-center py-12" role="status">
+            Loading accessible job openings...
+          </p>
+        ) : error ? (
+          <div className="bg-red-950/30 border border-red-900 rounded-xl p-5">
+            <p className="text-red-300" role="alert">
+              {error}
+            </p>
+          </div>
         ) : jobs.length === 0 ? (
-          <p className="text-gray-400 text-center py-12">No open positions available at the moment.</p>
+          <p className="text-gray-400 text-center py-12">
+            No open positions available at the moment.
+          </p>
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {jobs.map((job) => {
-              const isApplied = appliedJobs[job._id];
-              return (
-                <div key={job._id} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl">
-                  <div className="space-y-2">
-                    <h2 className="text-xl font-bold text-white">{job.title}</h2>
-                    <p className="text-sm text-gray-400">{job.company} • <span className="text-gray-300">{job.location}</span></p>
-                    <p className="text-xs text-gray-400 max-w-xl">{job.description}</p>
-                    
-                    {/* Accommodation Badges */}
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {job.accommodations?.map((acc) => (
-                        <span key={acc} className="text-xs bg-gray-950 border border-gray-800 text-emerald-400 px-2.5 py-1 rounded-lg">
-                          ✓ {acc.replace('_', ' ')}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+            {jobs.map((job) => (
+              <article
+                key={job._id}
+                className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl"
+              >
+                <div className="space-y-3">
+                  <h2 className="text-xl font-bold text-white">
+                    {job.title}
+                  </h2>
 
-                  <button
-                    type="button"
-                    onClick={() => handleApply(job._id)}
-                    disabled={isApplied}
-                    className={`px-6 py-3 rounded-xl font-bold transition-all whitespace-nowrap ${
-                      isApplied
-                        ? 'bg-emerald-600/20 border border-emerald-500 text-emerald-300 cursor-default'
-                        : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-900/40'
-                    }`}
-                  >
-                    {isApplied ? 'Application Submitted ✓' : 'Apply with Profile'}
-                  </button>
+                  {job.location && (
+                    <p className="text-sm text-gray-300">
+                      <span aria-hidden="true">📍 </span>
+                      {job.location}
+                    </p>
+                  )}
+
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    {job.description}
+                  </p>
+
+                  {job.requirements?.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-white mb-2">
+                        Requirements
+                      </h3>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-400">
+                        {job.requirements.map((requirement, index) => (
+                          <li key={`${index}-${requirement}`}>
+                            {requirement}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {job.offeredAccommodations?.length > 0 && (
+                    <div className="pt-2">
+                      <h3 className="text-sm font-semibold text-gray-200 mb-2">
+                        Workplace accommodations
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {job.offeredAccommodations.map((accommodation) => (
+                          <span
+                            key={accommodation}
+                            className="text-xs bg-gray-950 border border-gray-800 text-emerald-400 px-2.5 py-1.5 rounded-lg"
+                          >
+                            ✓ {formatAccommodation(accommodation)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-500 pt-2">
+                    Application form coming soon.
+                  </p>
                 </div>
-              );
-            })}
+              </article>
+            ))}
           </div>
         )}
       </main>
