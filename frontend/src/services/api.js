@@ -29,7 +29,10 @@ export const submitSupportRequest = async (payload) => {
 
 export const fetchJobs = async (params = {}) => {
   const response = await API.get('/jobs', { params });
-  return response.data;
+  if (!Array.isArray(response.data.jobs)) {
+    throw new Error('The jobs response did not contain a jobs array.');
+  }
+  return response.data.jobs;
 };
 
 export const applyToJob = async (payload) => {
