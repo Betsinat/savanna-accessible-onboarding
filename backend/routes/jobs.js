@@ -1,6 +1,7 @@
 
 const express = require('express');
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 
 const Job = require('../models/job');
 const JobApplication = require('../models/jobApplication');
@@ -43,7 +44,7 @@ router.get('/jobs', async (req, res) => {
   try {
     const { sessionId, match = 'any' } = req.query;
 
-    let filter = { status: 'active' };
+    const filter = { status: 'active' };
 
     if (match !== 'any' && match !== 'all') {
       return res.status(400).json({
@@ -107,15 +108,25 @@ router.post('/jobs/apply', async (req, res) => {
     } = req.body;
 
     if (
-      !sessionId ||
-      !jobId ||
-      !candidateName ||
+      typeof sessionId !== 'string' ||
+      !sessionId.trim() ||
+      typeof jobId !== 'string' ||
+      !jobId.trim() ||
+      typeof candidateName !== 'string' ||
+      !candidateName.trim() ||
       !Array.isArray(voiceAnswers) ||
       !Array.isArray(requestedAccommodations)
     ) {
       return res.status(400).json({
         success: false,
-        message: 'Required application information is missing'
+        message: 'Required application information is missing or invalid'
+      });
+    }
+
+    if (!mongoose.isValidObjectId(jobId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid job ID'
       });
     }
 
@@ -123,12 +134,25 @@ router.post('/jobs/apply', async (req, res) => {
       !voiceAnswers.every(answer =>
         answer &&
         typeof answer.questionId === 'string' &&
-        typeof answer.audioTranscript === 'string'
+        answer.questionId.trim() &&
+        typeof answer.audioTranscript === 'string' &&
+        answer.audioTranscript.trim()
       )
     ) {
       return res.status(400).json({
         success: false,
         message: 'Each voice answer must have a questionId and audioTranscript'
+      });
+    }
+
+    if (
+      !requestedAccommodations.every(
+        item => typeof item === 'string' && item.trim()
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Requested accommodations must contain valid strings'
       });
     }
 
@@ -157,9 +181,9 @@ router.post('/jobs/apply', async (req, res) => {
     }
 
     const application = new JobApplication({
-      sessionId,
+      sessionId: sessionId.trim(),
       jobId,
-      candidateName,
+      candidateName: candidateName.trim(),
       voiceAnswers,
       requestedAccommodations
     });
@@ -174,6 +198,13 @@ router.post('/jobs/apply', async (req, res) => {
 
   } catch (error) {
     console.error('Job application error:', error);
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'You have already applied for this job'
+      });
+    }
 
     if (error.name === 'ValidationError') {
       return res.status(400).json({
@@ -203,11 +234,16 @@ router.post('/employer/jobs', verifyEmployerKey, async (req, res) => {
     } = req.body;
 
     if (
-      !title ||
-      !description ||
-      (requirements !== undefined && !Array.isArray(requirements)) ||
+      typeof title !== 'string' ||
+      !title.trim() ||
+      typeof description !== 'string' ||
+      !description.trim() ||
+      (requirements !== undefined &&
+        (!Array.isArray(requirements) ||
+          !requirements.every(item => typeof item === 'string'))) ||
       (offeredAccommodations !== undefined &&
-        !Array.isArray(offeredAccommodations)) ||
+        (!Array.isArray(offeredAccommodations) ||
+          !offeredAccommodations.every(item => typeof item === 'string'))) ||
       (status !== undefined &&
         !['active', 'inactive', 'closed'].includes(status))
     ) {
@@ -218,8 +254,8 @@ router.post('/employer/jobs', verifyEmployerKey, async (req, res) => {
     }
 
     const job = new Job({
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       requirements,
       offeredAccommodations,
       location,
