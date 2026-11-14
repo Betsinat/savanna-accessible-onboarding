@@ -38,7 +38,10 @@ const JobApplicationSchema = new mongoose.Schema({
   }
 });
 
-JobApplicationSchema.index({ sessionId: 1, jobId: 1 });
+JobApplicationSchema.index(
+  { sessionId: 1, jobId: 1 },
+  { unique: true }
+);
 
 module.exports = mongoose.model(
   'JobApplication',
