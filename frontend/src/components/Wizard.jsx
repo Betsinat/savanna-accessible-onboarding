@@ -5,11 +5,10 @@ import StepPersonal from './steps/StepPersonal';
 import StepIdentity from './steps/StepIdentity';
 import StepSupport from './steps/StepSupport';
 import StepReview from './steps/StepReview';
+import { speakText, stopSpeech } from '../utils/tts';
 
-export default function Wizard({ onSuccess }) {
-  const [sessionId] = usePersistentState('savanna_session_id', `session-${Date.now()}`);
+export default function Wizard({ formData, updateFormData, onSuccess, sessionId }) {
   const [currentStep, setCurrentStep] = usePersistentState('savanna_current_step', 1);
-  const [formData, setFormData] = usePersistentState('savanna_form_data', {});
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
 
@@ -35,10 +34,6 @@ export default function Wizard({ onSuccess }) {
     const timer = setTimeout(autoSave, 1000);
     return () => clearTimeout(timer);
   }, [sessionId, currentStep, formData]);
-
-  const updateFormData = (key, value) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
 
   const handleNext = () => {
     setCurrentStep((prev) => Math.min(prev + 1, 4));
@@ -73,6 +68,22 @@ export default function Wizard({ onSuccess }) {
           <p className="text-xs text-gray-500 font-mono mt-0.5">Session ID: {sessionId}</p>
         </div>
         <div className="text-right">
+          <div className="flex justify-end gap-2 mb-2">
+            <button
+              type="button"
+              onClick={() => speakText(document.querySelector('main')?.innerText || '')}
+              className="text-xs font-medium px-2 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700"
+            >
+              Read this step
+            </button>
+            <button
+              type="button"
+              onClick={stopSpeech}
+              className="text-xs font-medium px-2 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700"
+            >
+              Stop speaking
+            </button>
+          </div>
           <span className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-gray-900 border border-gray-800 text-gray-300">
             Step {currentStep} of 4
           </span>

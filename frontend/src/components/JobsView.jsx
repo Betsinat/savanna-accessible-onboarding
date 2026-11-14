@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getJobs, applyForJob } from '../services/api';
+import { fetchJobs, applyToJob } from '../services/api';
 
 export default function JobsView({ formData, sessionId }) {
   const [jobs, setJobs] = useState([]);
@@ -8,9 +8,9 @@ export default function JobsView({ formData, sessionId }) {
   const [appliedJobs, setAppliedJobs] = useState({});
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const loadJobs = async () => {
       try {
-        const response = await getJobs();
+        const response = await fetchJobs();
         setJobs(response.data || response || [
           {
             _id: 'job-1',
@@ -46,12 +46,12 @@ export default function JobsView({ formData, sessionId }) {
       }
     };
 
-    fetchJobs();
+    loadJobs();
   }, []);
 
   const handleApply = async (jobId) => {
     try {
-      await applyForJob({
+      await applyToJob({
         jobId,
         sessionId,
         candidateName: formData.fullName,

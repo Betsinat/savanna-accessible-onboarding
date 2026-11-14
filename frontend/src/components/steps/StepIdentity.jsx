@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import VoiceInput from '../wizard/VoiceInput';
 
 export default function StepIdentity({ formData, updateFormData, onNext, onBack }) {
   const [error, setError] = useState('');
@@ -65,39 +66,29 @@ export default function StepIdentity({ formData, updateFormData, onNext, onBack 
 
         {/* Conditional Field Input */}
         {idRoute === 'standard_id' ? (
-          <div>
-            <label htmlFor="idNumber" className="block text-sm font-medium mb-2">
-              ID Number / Reference <span className="text-blue-400">*</span>
-            </label>
-            <input
-              id="idNumber"
-              type="text"
-              placeholder="e.g. AAU/1234/20"
-              value={idNumber}
-              onChange={(e) => {
-                updateFormData('idDetails', { ...formData.idDetails, idNumber: e.target.value });
-                if (error) setError('');
-              }}
-              className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-            />
-          </div>
+          <VoiceInput
+            id="idNumber"
+            label="ID Number / Reference *"
+            type="text"
+            placeholder="e.g. AAU/1234/20"
+            value={idNumber}
+            onChange={(value) => {
+              updateFormData('idDetails', { ...formData.idDetails, idNumber: value });
+              if (error) setError('');
+            }}
+          />
         ) : (
-          <div>
-            <label htmlFor="proxyName" className="block text-sm font-medium mb-2">
-              Trusted Proxy / Representative Name <span className="text-blue-400">*</span>
-            </label>
-            <input
-              id="proxyName"
-              type="text"
-              placeholder="Enter proxy or contact name"
-              value={proxyName}
-              onChange={(e) => {
-                updateFormData('idDetails', { ...formData.idDetails, proxyName: e.target.value });
-                if (error) setError('');
-              }}
-              className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-            />
-          </div>
+          <VoiceInput
+            id="proxyName"
+            label="Trusted Proxy / Representative Name *"
+            type="text"
+            placeholder="Enter proxy or contact name"
+            value={proxyName}
+            onChange={(value) => {
+              updateFormData('idDetails', { ...formData.idDetails, proxyName: value });
+              if (error) setError('');
+            }}
+          />
         )}
       </div>
 

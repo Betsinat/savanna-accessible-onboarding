@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import VoiceInput from '../wizard/VoiceInput';
 
 export default function StepSupport({ formData, updateFormData, onNext, onBack }) {
   const [error, setError] = useState('');
@@ -80,16 +81,13 @@ export default function StepSupport({ formData, updateFormData, onNext, onBack }
 
         {/* Additional Notes */}
         <div>
-          <label htmlFor="additionalNotes" className="block text-sm font-medium mb-2">
-            Additional Notes (Optional)
-          </label>
-          <textarea
+          <VoiceInput
             id="additionalNotes"
-            rows="3"
+            label="Additional Notes (Optional)"
+            type="textarea"
             placeholder="Share any specific details or preferences..."
             value={additionalNotes}
-            onChange={(e) => updateFormData('additionalNotes', e.target.value)}
-            className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+            onChange={(value) => updateFormData('additionalNotes', value)}
           />
         </div>
       </div>

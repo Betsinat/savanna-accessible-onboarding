@@ -40,7 +40,7 @@ export default function StepReview({ formData, updateFormData, sessionId, onBack
 
       await registerCandidate(payload);
       setIsSubmitting(false);
-      if (onSuccess) onSuccess(); // Trigger success transition / Career Gateway
+      onSuccess();
     } catch (err) {
       console.error('Registration failed:', err);
       setError('Failed to complete registration. Please check your connection and try again.');
