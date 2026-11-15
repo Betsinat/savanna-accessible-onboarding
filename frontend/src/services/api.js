@@ -42,3 +42,17 @@ export const createEmployerJob = async (payload) => {
   const response = await API.post('/employer/jobs', payload);
   return response.data;
 };
+export const fetchJobApplicants = async (jobId) => {
+  const response = await API.get(
+    `/employer/jobs/${jobId}/applications`
+  );
+  return response.data;
+};
+
+export const updateApplicationStatus = async (applicationId, status) => {
+  const response = await API.patch(
+    `/employer/applications/${applicationId}/status`,
+    { status }
+  );
+  return response.data;
+};
