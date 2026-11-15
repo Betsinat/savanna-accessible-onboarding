@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import JobPostingForm from './JobPostingForm';
 import EmployerApplications from './EmployerApplications';
-import { useI18n } from '../../i18n/I18nContext';
 
 export default function EmployerDashboard() {
   const { t } = useI18n();

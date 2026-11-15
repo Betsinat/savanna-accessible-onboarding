@@ -34,41 +34,13 @@ export default function AccessibilityToolbar() {
 
   return (
     <aside
-      aria-label={t('toolbar.label')}
-      className="fixed bottom-6 end-6 z-50 bg-gray-900/95 backdrop-blur-md border border-gray-700 p-3 rounded-2xl shadow-2xl flex flex-col gap-3 text-white"
+      aria-label="Accessibility tools"
+      className="fixed bottom-6 right-6 z-50 bg-gray-900/95 backdrop-blur-md border border-gray-700 p-3 rounded-2xl shadow-2xl flex flex-col gap-3 text-white"
     >
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs font-semibold px-2 text-blue-400 uppercase tracking-wider">
-          {t('toolbar.title')}
+          A11y Tools
         </span>
-        <label htmlFor="lang-select" className="sr-only">
-          {t('toolbar.language')}
-        </label>
-        <select
-          id="lang-select"
-          value={lang}
-          onChange={(event) => setLang(event.target.value)}
-          className="min-h-11 rounded-lg border border-gray-500 bg-gray-800 px-3 text-sm text-white"
-        >
-          {languages.map((language) => (
-            <option key={language.code} value={language.code} lang={language.code}>
-              {language.label}
-            </option>
-          ))}
-        </select>
-
-        <button
-          type="button"
-          onClick={() => setSimpleWords(!simpleWords)}
-          aria-pressed={simpleWords}
-          className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-            simpleWords
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-          }`}
-        >
-          {simpleWords ? t('toolbar.simpleWordsOn') : t('toolbar.simpleWords')}
-        </button>
 
         <button
           type="button"
@@ -80,7 +52,7 @@ export default function AccessibilityToolbar() {
           }`}
           aria-pressed={highContrast}
         >
-          {highContrast ? t('toolbar.contrastOn') : t('toolbar.contrast')}
+          {highContrast ? 'High Contrast ON' : 'Contrast'}
         </button>
 
         <button
@@ -93,7 +65,7 @@ export default function AccessibilityToolbar() {
           }`}
           aria-pressed={largeText}
         >
-          {t('toolbar.largerText')}
+          Larger text
         </button>
 
         <button
@@ -107,7 +79,7 @@ export default function AccessibilityToolbar() {
           aria-expanded={showScreenReaderHelp}
           aria-controls="screen-reader-help"
         >
-          {showScreenReaderHelp ? t('toolbar.hideHelp') : t('toolbar.screenHelp')}
+          {showScreenReaderHelp ? 'Hide help' : 'Screen reader help'}
         </button>
       </div>
 
@@ -122,32 +94,33 @@ export default function AccessibilityToolbar() {
             id="screen-reader-help-title"
             className="font-semibold text-white mb-2"
           >
-            {t('toolbar.keyboardGuide')}
+            Keyboard & Screen Reader Quick Guide
           </h2>
 
           <ul className="space-y-2">
             <li>
-              <strong>Tab:</strong> {t('toolbar.tab')}
+              <strong>Tab:</strong> Move to the next interactive control.
             </li>
             <li>
-              <strong>Shift + Tab:</strong> {t('toolbar.shiftTab')}
+              <strong>Shift + Tab:</strong> Move to the previous control.
             </li>
             <li>
-              <strong>Arrow keys:</strong> {t('toolbar.arrows')}
+              <strong>Arrow keys:</strong> Move between options in a radio group.
             </li>
             <li>
-              <strong>Space:</strong> {t('toolbar.space')}
+              <strong>Space:</strong> Select a checkbox or radio option.
             </li>
             <li>
-              <strong>Enter or Space:</strong> {t('toolbar.enterSpace')}
+              <strong>Enter or Space:</strong> Activate a button.
             </li>
             <li>
-              <strong>{t('wizard.listen')}:</strong> {t('toolbar.listenHelp')}
+              <strong>Read this question:</strong> Select the read-aloud button to hear the current question.
             </li>
           </ul>
 
           <p className="mt-3 text-xs text-gray-400">
-            {t('toolbar.screenReaderNote')}
+            You can also use an installed screen reader such as NVDA or
+            TalkBack. Screen reader navigation shortcuts may vary.
           </p>
         </section>
       )}

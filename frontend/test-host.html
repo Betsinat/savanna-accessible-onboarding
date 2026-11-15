@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>External Website - Savanna Widget Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px;
+      background: #f1f5f9;
+      color: #1e293b;
+      font-family: Arial, sans-serif;
+    }
+
+    .host-card {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 24px;
+      background: white;
+      border-radius: 12px;
+    }
+
+    #savanna-onboarding {
+      display: block;
+      margin-top: 24px;
+      border: 2px dashed #94a3b8;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="host-card">
+    <h1>Example Partner Website</h1>
+    <p>This is an external website hosting the Savanna onboarding widget.</p>
+
+    <div id="savanna-onboarding"></div>
+  </div>
+
+  <script
+    src="./dist-widget/savanna-onboarding-widget.js"
+    data-api-url="http://localhost:5000/api"
+  ></script>
+</body>
+</html>
