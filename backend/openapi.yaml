@@ -1,0 +1,777 @@
+openapi: 3.0.3
+
+info:
+  title: Savanna Accessible Onboarding API
+  version: 1.0.0
+  description: |
+    REST API for the Savanna Accessible Onboarding platform.
+    Supports candidate registration, onboarding progress, job discovery,
+    job applications, employer job management, and support requests.
+
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+security: []
+
+tags:
+  - name: Health
+  - name: Onboarding
+  - name: Candidates
+  - name: Jobs
+  - name: Employers
+  - name: Support
+
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Invalid request data.
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active]
+        message:
+          type: string
+        database:
+          type: string
+          enum: [connected, disconnected]
+
+    Candidate:
+      type: object
+      properties:
+        _id:
+          type: string
+        sessionId:
+          type: string
+        fullName:
+          type: string
+        phoneOrEmail:
+          type: string
+        idRoute:
+          type: string
+          enum:
+            - standard_id
+            - refugee_id
+            - alternative_doc
+            - partner_referral
+        idDetails:
+          $ref: '#/components/schemas/IdDetails'
+        accommodationPreferences:
+          type: array
+          items:
+            type: string
+        consentGiven:
+          type: boolean
+          enum: [true]
+        createdAt:
+          type: string
+          format: date-time
+
+    IdDetails:
+      type: object
+      properties:
+        documentNumber:
+          type: string
+        partnerCode:
+          type: string
+
+    OnboardingSaveRequest:
+      type: object
+      required:
+        - sessionId
+        - currentStep
+        - formData
+      properties:
+        sessionId:
+          type: string
+        currentStep:
+          type: integer
+          minimum: 1
+        formData:
+          type: object
+          additionalProperties: true
+        requestSmsLink:
+          type: boolean
+          default: false
+        phoneNumber:
+          type: string
+
+    OnboardingDraft:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        currentStep:
+          type: integer
+          minimum: 1
+        formData:
+          type: object
+          additionalProperties: true
+        resumeTokenExpiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CandidateRegistrationRequest:
+      type: object
+      required:
+        - sessionId
+        - fullName
+        - phoneOrEmail
+        - idRoute
+        - consentGiven
+        - accommodationPreferences
+      properties:
+        sessionId:
+          type: string
+        fullName:
+          type: string
+        phoneOrEmail:
+          type: string
+        idRoute:
+          type: string
+          enum:
+            - standard_id
+            - refugee_id
+            - alternative_doc
+            - partner_referral
+        idDetails:
+          $ref: '#/components/schemas/IdDetails'
+        consentGiven:
+          type: boolean
+          enum: [true]
+        accommodationPreferences:
+          type: array
+          items:
+            type: string
+
+    Job:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+          maxLength: 150
+        company:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 5000
+        requirements:
+          type: array
+          items:
+            type: string
+        offeredAccommodations:
+          type: array
+          items:
+            type: string
+        location:
+          type: string
+          default: Not specified
+        status:
+          type: string
+          enum: [active, inactive, closed]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    JobApplication:
+      type: object
+      properties:
+        _id:
+          type: string
+        sessionId:
+          type: string
+        jobId:
+          type: string
+        candidateName:
+          type: string
+        voiceAnswers:
+          type: array
+          items:
+            $ref: '#/components/schemas/VoiceAnswer'
+        requestedAccommodations:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [pending, reviewed, shortlisted, rejected]
+        submittedAt:
+          type: string
+          format: date-time
+
+    VoiceAnswer:
+      type: object
+      required:
+        - questionId
+        - audioTranscript
+      properties:
+        questionId:
+          type: string
+        audioTranscript:
+          type: string
+          maxLength: 10000
+
+    EmployerJobRequest:
+      type: object
+      required:
+        - title
+        - company
+        - description
+      properties:
+        title:
+          type: string
+          maxLength: 150
+        company:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 5000
+        requirements:
+          type: array
+          items:
+            type: string
+        offeredAccommodations:
+          type: array
+          items:
+            type: string
+        location:
+          type: string
+          default: Not specified
+
+    SupportRequest:
+      type: object
+      properties:
+        _id:
+          type: string
+        sessionId:
+          type: string
+        supportType:
+          type: string
+        preferredContactMethod:
+          type: string
+          enum: [phone, sms, email]
+        additionalNotes:
+          type: string
+          maxLength: 2000
+        status:
+          type: string
+          enum: [pending, reviewing, resolved]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SupportRequestCreate:
+      type: object
+      required:
+        - sessionId
+        - supportType
+        - preferredContactMethod
+      properties:
+        sessionId:
+          type: string
+        supportType:
+          type: string
+        preferredContactMethod:
+          type: string
+          enum: [phone, sms, email]
+        additionalNotes:
+          type: string
+          maxLength: 2000
+paths:
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Check API and database status
+      responses:
+        '200':
+          description: API is running. Database may be connected or disconnected.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/onboarding/save:
+    post:
+      tags: [Onboarding]
+      summary: Save onboarding progress
+      description: |
+        Creates or updates an onboarding draft using its session ID.
+        If requestSmsLink is true, a phone number is required and an SMS
+        resume link is requested. Resume tokens expire after 30 days.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingSaveRequest'
+      responses:
+        '200':
+          description: Onboarding progress saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  smsRequested:
+                    type: boolean
+                  draft:
+                    $ref: '#/components/schemas/OnboardingDraft'
+        '400':
+          description: Invalid request data or missing phone number for SMS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed to save onboarding progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/onboarding/resume/{token}:
+    get:
+      tags: [Onboarding]
+      summary: Resume saved onboarding progress
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: 64-character hexadecimal resume token
+          schema:
+            type: string
+            pattern: '^[a-fA-F0-9]{64}$'
+      responses:
+        '200':
+          description: Onboarding draft retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  draft:
+                    $ref: '#/components/schemas/OnboardingDraft'
+        '400':
+          description: Invalid resume token format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Resume token is invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed to retrieve onboarding progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/candidates:
+    post:
+      tags: [Candidates]
+      summary: Register a candidate
+      description: |
+        Registers a candidate. Refugee and alternative document routes require
+        documentNumber. Partner referrals require partnerCode.
+        Consent must be true.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateRegistrationRequest'
+      responses:
+        '201':
+          description: Candidate registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  candidateId:
+                    type: string
+        '400':
+          description: Missing fields, consent not given, or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Candidate session already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed to register candidate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/jobs:
+    get:
+      tags: [Jobs]
+      summary: Retrieve available jobs
+      description: |
+        Returns active jobs. If sessionId is provided, jobs can be filtered
+        using the candidate's accommodation preferences.
+      parameters:
+        - name: sessionId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: match
+          in: query
+          required: false
+          description: Whether jobs must match any or all accommodation preferences
+          schema:
+            type: string
+            enum: [any, all]
+            default: any
+      responses:
+        '200':
+          description: Jobs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  jobs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+        '400':
+          description: Invalid match query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Candidate profile not found for the supplied session ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed to retrieve jobs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/jobs/apply:
+    post:
+      tags: [Jobs]
+      summary: Submit a job application
+      description: |
+        Submits an application for an active job. A candidate can submit only
+        one application per job. Each voice answer must include a question ID
+        and its transcript.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - jobId
+                - candidateName
+                - voiceAnswers
+                - requestedAccommodations
+              properties:
+                sessionId:
+                  type: string
+                jobId:
+                  type: string
+                  pattern: '^[a-fA-F0-9]{24}$'
+                candidateName:
+                  type: string
+                voiceAnswers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/VoiceAnswer'
+                requestedAccommodations:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Job application submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  applicationId:
+                    type: string
+        '400':
+          description: Invalid input or job ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Active job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Candidate has already applied to this job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed to submit application
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /api/employer/jobs:
+    post:
+      tags: [Employers]
+      summary: Publish a job
+      description: Demo employer endpoint. Authentication and authorization are not currently implemented.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployerJobRequest'
+      responses:
+        '201':
+          description: Job published successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  job:
+                    $ref: '#/components/schemas/Job'
+        '400':
+          description: Invalid or missing job information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed to publish job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/employer/jobs/{jobId}/applications:
+    get:
+      tags: [Employers]
+      summary: Retrieve applications for a job
+      description: Demo employer endpoint. Authentication and authorization are not currently implemented.
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-fA-F0-9]{24}$'
+      responses:
+        '200':
+          description: Applications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  job:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      company:
+                        type: string
+                  count:
+                    type: integer
+                  applications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JobApplication'
+        '400':
+          description: Invalid job ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed to retrieve applications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/employer/applications/{applicationId}/status:
+    patch:
+      tags: [Employers]
+      summary: Update an application status
+      description: Demo employer endpoint. Authentication and authorization are not currently implemented.
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-fA-F0-9]{24}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [pending, reviewed, shortlisted, rejected]
+      responses:
+        '200':
+          description: Application status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  application:
+                    $ref: '#/components/schemas/JobApplication'
+        '400':
+          description: Invalid application ID or status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Application not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed to update application status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/support-requests:
+    post:
+      tags: [Support]
+      summary: Submit a support request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportRequestCreate'
+      responses:
+        '201':
+          description: Support request submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  supportRequest:
+                    $ref: '#/components/schemas/SupportRequest'
+        '400':
+          description: Missing or invalid support request information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed to submit support request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
