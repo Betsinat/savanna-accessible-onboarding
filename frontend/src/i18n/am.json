@@ -20,8 +20,19 @@
     "title": "የተደራሽነት መሣሪያዎች",
     "language": "ቋንቋ",
     "contrast": "ንፅፅር",
+    "contrastOptions": {
+      "standard": "መደበኛ ንፅፅር",
+      "high": "ከፍተኛ ንፅፅር"
+    },
     "contrastOn": "ከፍተኛ ንፅፅር በርቷል",
     "largerText": "ትልቅ ጽሑፍ",
+    "textSize": "የጽሑፍ መጠን",
+    "textSizeOptions": {
+      "normal": "መደበኛ",
+      "medium": "መካከለኛ",
+      "large": "ትልቅ",
+      "extraLarge": "በጣም ትልቅ"
+    },
     "simpleWords": "ቀላል ቃላት",
     "simpleWordsOn": "ቀላል ቃላት በርተዋል",
     "screenHelp": "የማያ አንባቢ እገዛ",

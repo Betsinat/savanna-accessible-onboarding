@@ -20,8 +20,19 @@
     "title": "Accessibility tools",
     "language": "Language",
     "contrast": "Contrast",
+    "contrastOptions": {
+      "standard": "Standard contrast",
+      "high": "High contrast"
+    },
     "contrastOn": "High contrast on",
     "largerText": "Larger text",
+    "textSize": "Text size",
+    "textSizeOptions": {
+      "normal": "Normal",
+      "medium": "Medium",
+      "large": "Large",
+      "extraLarge": "Extra Large"
+    },
     "simpleWords": "Simple words",
     "simpleWordsOn": "Simple words on",
     "screenHelp": "Screen reader help",

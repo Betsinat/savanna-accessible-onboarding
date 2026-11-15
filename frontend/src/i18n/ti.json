@@ -20,8 +20,19 @@
     "title": "መሳርሒታት ተበጻሕነት",
     "language": "ቋንቋ",
     "contrast": "ንጽጽር",
+    "contrastOptions": {
+      "standard": "ልሙድ ንጽጽር",
+      "high": "ልዑል ንጽጽር"
+    },
     "contrastOn": "ልዑል ንጽጽር ተኸፊቱ",
     "largerText": "ዓቢ ጽሑፍ",
+    "textSize": "ዓቐን ጽሑፍ",
+    "textSizeOptions": {
+      "normal": "ልሙድ",
+      "medium": "ማእከላይ",
+      "large": "ዓቢ",
+      "extraLarge": "ኣዝዩ ዓቢ"
+    },
     "simpleWords": "ቀለልቲ ቃላት",
     "simpleWordsOn": "ቀለልቲ ቃላት ተኸፊቶም",
     "screenHelp": "ሓገዝ ኣንባቢ ስክሪን",

@@ -20,8 +20,19 @@
     "title": "Qalabka helitaanka",
     "language": "Luqad",
     "contrast": "Kala-duwanaanta midabka",
+    "contrastOptions": {
+      "standard": "Kala-duwanaan caadi ah",
+      "high": "Kala-duwanaan sare"
+    },
     "contrastOn": "Kala-duwanaan sare waa shidan tahay",
     "largerText": "Qoraal weyn",
+    "textSize": "Cabbirka qoraalka",
+    "textSizeOptions": {
+      "normal": "Caadi",
+      "medium": "Dhexdhexaad",
+      "large": "Weyn",
+      "extraLarge": "Aad u weyn"
+    },
     "simpleWords": "Erayo fudud",
     "simpleWordsOn": "Erayo fudud waa shidan yihiin",
     "screenHelp": "Caawinta akhriyaha shaashadda",

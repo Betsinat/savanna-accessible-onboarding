@@ -20,8 +20,19 @@
     "title": "Geytimtaanam qalitte",
     "language": "Qafar af",
     "contrast": "Fakim",
+    "contrastOptions": {
+      "standard": "Taqabi fakim",
+      "high": "Caddo fakim"
+    },
     "contrastOn": "Caddo fakim ayroole",
     "largerText": "Caddo qangara",
+    "textSize": "Qangara caddo",
+    "textSizeOptions": {
+      "normal": "Taqabi",
+      "medium": "Giddigdu",
+      "large": "Caddo",
+      "extraLarge": "Qasri caddo"
+    },
     "simpleWords": "Qunxaaney qangara",
     "simpleWordsOn": "Qunxaaney qangara ayroole",
     "screenHelp": "Screen akahrih caagid",

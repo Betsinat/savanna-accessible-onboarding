@@ -20,8 +20,19 @@
     "title": "Meeshaalee dhaqqabummaa",
     "language": "Afaan",
     "contrast": "Faallaa halluu",
+    "contrastOptions": {
+      "standard": "Faallaa idilee",
+      "high": "Faallaa olaanaa"
+    },
     "contrastOn": "Faallaan ol'aanaan banameera",
     "largerText": "Barreeffama guddaa",
+    "textSize": "Hammamtaa barruu",
+    "textSizeOptions": {
+      "normal": "Idilee",
+      "medium": "Giddugaleessa",
+      "large": "Guddaa",
+      "extraLarge": "Baay'ee guddaa"
+    },
     "simpleWords": "Jechoota salphaa",
     "simpleWordsOn": "Jechoonni salphaan banamaniiru",
     "screenHelp": "Gargaarsa dubbisaa iskiriinii",
