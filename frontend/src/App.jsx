@@ -4,7 +4,7 @@ import { useI18n } from './i18n/I18nContext';
 import { usePersistentState } from './hooks/userPersistentState';
 import AccessibilityToolbar from './components/AccessibilityToolbar';
 import Track1Module from './components/Track1Module';
-import { useI18n } from './i18n/I18nContext';
+
 
 function createSessionId() {
   const cryptoApi = globalThis.crypto;
