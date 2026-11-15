@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function AccessibilityToolbar() {
+  const { lang, setLang, t, languages, simpleWords, setSimpleWords } = useI18n();
   const [highContrast, setHighContrast] = useState(false);
   const [largeText, setLargeText] = useState(false);
   const [showScreenReaderHelp, setShowScreenReaderHelp] = useState(false);

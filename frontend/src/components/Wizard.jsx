@@ -7,65 +7,67 @@ import StepAccommodations from './steps/StepAccommodations';
 import StepConsent from './steps/StepConsent';
 import StepReview from './steps/StepReview';
 import { speakText, stopSpeech } from '../utils/tts';
+import { useI18n } from '../i18n/I18nContext';
+import { normalizeEthiopianPhone } from '../utils/ethiopia';
 
 const QUESTIONS = [
   {
     id: 'fullName',
-    title: 'What is your full name?',
+    key: 'fullName',
     Component: StepPersonal,
     props: { field: 'fullName' },
   },
   {
     id: 'phoneOrEmail',
-    title: 'How can we reach you?',
+    key: 'contact',
     Component: StepPersonal,
     props: { field: 'phoneOrEmail' },
   },
   {
     id: 'idRoute',
-    title: 'How would you like to verify your identity?',
+    key: 'identityRoute',
     Component: StepIdentity,
     props: { mode: 'route' },
   },
   {
     id: 'identityDetails',
-    title: 'What is your ID number or document reference?',
+    key: 'identityDetails',
     Component: StepIdentity,
     props: { mode: 'details' },
   },
   {
     id: 'supportType',
-    title: 'What kind of support would help you?',
+    key: 'supportType',
     Component: StepSupport,
     props: { field: 'supportType' },
   },
   {
     id: 'preferredContactMethod',
-    title: 'What is your preferred contact method?',
+    key: 'contactMethod',
     Component: StepSupport,
     props: { field: 'preferredContactMethod' },
   },
   {
     id: 'additionalNotes',
-    title: 'Would you like to add any notes?',
+    key: 'notes',
     Component: StepSupport,
     props: { field: 'additionalNotes' },
   },
   {
     id: 'accommodations',
-    title: 'Which workplace accommodations would help you?',
-    description: 'Optional. Select any that apply.',
+    key: 'accommodations',
+    descriptionKey: 'wizard.questions.accommodations.description',
     Component: StepAccommodations,
   },
   {
     id: 'consent',
-    title: 'Do you consent to saving your information?',
-    description: 'Consent is required to complete registration.',
+    key: 'consent',
+    descriptionKey: 'wizard.questions.consent.description',
     Component: StepConsent,
   },
   {
     id: 'review',
-    title: 'Review your information.',
+    key: 'review',
     Component: StepReview,
   },
 ];
@@ -75,56 +77,52 @@ function isValidPhoneOrEmail(value) {
 
   const normalized = value.trim();
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  const phonePattern = /^\+?[\d\s().-]+$/;
-  const digitCount = normalized.replace(/\D/g, '').length;
-
-  return emailPattern.test(normalized) ||
-    (phonePattern.test(normalized) && digitCount >= 7 && digitCount <= 15);
+  return emailPattern.test(normalized) || normalizeEthiopianPhone(normalized) !== null;
 }
 
-function getValidationError(questionId, formData) {
+function getValidationError(questionId, formData, t) {
   switch (questionId) {
     case 'fullName':
       return typeof formData.fullName === 'string' && formData.fullName.trim()
         ? null
-        : { control: 'fullName', message: 'Please enter your full name.' };
+        : { control: 'fullName', message: t('wizard.validation.name') };
     case 'phoneOrEmail': {
       const value = typeof formData.phoneOrEmail === 'string' ? formData.phoneOrEmail : '';
       if (!value.trim()) {
-        return { control: 'phoneOrEmail', message: 'Please enter a phone number or email address.' };
+        return { control: 'phoneOrEmail', message: t('wizard.validation.contact') };
       }
       return isValidPhoneOrEmail(value)
         ? null
-        : { control: 'phoneOrEmail', message: 'Enter a valid email address or phone number.' };
+        : { control: 'phoneOrEmail', message: t('wizard.validation.contact') };
     }
     case 'idRoute':
-      return ['standard_id', 'alternative_route'].includes(formData.idRoute)
+      return ['national_id', 'refugee_id', 'other_document', 'partner_referral'].includes(formData.idRoute)
         ? null
-        : { control: 'idRoute', message: 'Please choose an identity route.' };
+        : { control: 'idRoute', message: t('wizard.validation.identity') };
     case 'identityDetails': {
       const identityDetails = formData.idDetails || {};
-      const control = formData.idRoute === 'alternative_route' ? 'proxyName' : 'idNumber';
-      const value = control === 'proxyName' ? identityDetails.proxyName : identityDetails.idNumber;
+      const control = 'idNumber';
+      const value = identityDetails.documentNumber;
       return value?.trim()
         ? null
-        : { control, message: 'Please provide the requested identity detail.' };
+        : { control, message: t('wizard.validation.identityDetails') };
     }
     case 'supportType':
       return formData.supportType?.trim()
         ? null
-        : { control: 'supportType', message: 'Please choose a support option.' };
+        : { control: 'supportType', message: t('wizard.validation.support') };
     case 'preferredContactMethod':
       return formData.preferredContactMethod
         ? null
-        : { control: 'preferredContactMethod', message: 'Please choose a preferred contact method.' };
+        : { control: 'preferredContactMethod', message: t('wizard.validation.contactMethod') };
     case 'consent':
       return formData.consentGiven
         ? null
-        : { control: 'consentGiven', message: 'Please provide consent to continue.' };
+        : { control: 'consentGiven', message: t('wizard.validation.consent') };
     case 'review':
       return formData.consentGiven
         ? null
-        : { control: 'consentGiven', message: 'Please provide consent to complete registration.' };
+        : { control: 'consentGiven', message: t('wizard.validation.consent') };
     default:
       return null;
   }
@@ -137,6 +135,7 @@ export default function Wizard({
   sessionId,
   isAccessibilityTestMode = false
 }) {
+  const { t, lang, bcp47, simpleWords } = useI18n();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,8 +147,16 @@ export default function Wizard({
   const [speechStatus, setSpeechStatus] = useState('');
   const headingRef = useRef(null);
   const invalidControlRef = useRef(null);
-  const question = QUESTIONS[currentQuestionIndex];
+  const questions = formData.idRoute === 'partner_referral'
+    ? QUESTIONS.filter((item) => item.id !== 'identityDetails')
+    : QUESTIONS;
+  const question = questions[currentQuestionIndex];
   const QuestionComponent = question.Component;
+  const questionTitleKey = question.id === 'identityDetails' && formData.idRoute === 'partner_referral'
+    ? 'wizard.questions.proxyName'
+    : `wizard.questions.${question.key}`;
+  const questionTitle = t(`${questionTitleKey}.${simpleWords ? 'simpleLabel' : 'label'}`);
+  const questionDescription = question.descriptionKey ? t(question.descriptionKey) : '';
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -177,16 +184,16 @@ export default function Wizard({
           formData,
           requestSmsLink: false,
         });
-        setSaveStatus('Progress saved');
+        setSaveStatus(t('wizard.saveComplete'));
       } catch (err) {
-        setSaveStatus('Working offline (saved locally)');
+        setSaveStatus(t('wizard.saveOffline'));
       } finally {
         setIsSaving(false);
       }
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [currentQuestionIndex, formData, isAccessibilityTestMode, sessionId]);
+  }, [currentQuestionIndex, formData, isAccessibilityTestMode, sessionId, t]);
 
   const handleBack = () => {
     setIsVoiceReviewOpen(false);
@@ -199,25 +206,28 @@ export default function Wizard({
   const handleContinue = async () => {
     if (isVoiceReviewOpen) return;
 
-    const error = getValidationError(question.id, formData);
+    const error = getValidationError(question.id, formData, t);
     if (error) {
       setSubmissionError('');
       setValidationError(error);
       if (question.id === 'review' && error.control === 'consentGiven') {
-        setCurrentQuestionIndex(8);
+        setCurrentQuestionIndex(questions.findIndex((item) => item.id === 'consent'));
       }
       return;
     }
 
     setValidationError(null);
     setTestCompletionStatus('');
+    if (question.id === 'phoneOrEmail' && !formData.phoneOrEmail.includes('@')) {
+      updateFormData('phoneOrEmail', normalizeEthiopianPhone(formData.phoneOrEmail));
+    }
     if (question.id !== 'review') {
-      setCurrentQuestionIndex((index) => Math.min(index + 1, QUESTIONS.length - 1));
+      setCurrentQuestionIndex((index) => Math.min(index + 1, questions.length - 1));
       return;
     }
 
     if (isAccessibilityTestMode) {
-      setTestCompletionStatus('Accessibility test complete. No application was saved or submitted.');
+      setTestCompletionStatus(t('wizard.testComplete'));
       return;
     }
 
@@ -227,8 +237,10 @@ export default function Wizard({
         sessionId,
         fullName: formData.fullName,
         phoneOrEmail: formData.phoneOrEmail,
-        idRoute: formData.idRoute || 'standard_id',
-        idDetails: formData.idDetails || {},
+        idRoute: formData.idRoute || 'national_id',
+        idDetails: {
+          documentNumber: formData.idDetails?.documentNumber || '',
+        },
         supportType: formData.supportType || 'general_guidance',
         preferredContactMethod: formData.preferredContactMethod || 'phone',
         additionalNotes: formData.additionalNotes || '',
@@ -241,7 +253,7 @@ export default function Wizard({
       onSuccess({ formData, sessionId });
     } catch (err) {
       console.error('Registration failed:', err);
-      setSubmissionError('Failed to complete registration. Please check your connection and try again.');
+      setSubmissionError(t('wizard.submitError'));
       setIsSubmitting(false);
     }
   };
@@ -253,33 +265,32 @@ export default function Wizard({
     setTestCompletionStatus('');
   };
 
-  const progressPercentage = ((currentQuestionIndex + 1) / QUESTIONS.length) * 100;
+  const progressPercentage = ((currentQuestionIndex + 1) / questions.length) * 100;
   const activeErrorControl = question.id === 'identityDetails'
-    ? (formData.idRoute === 'alternative_route' ? 'proxyName' : 'idNumber')
+    ? 'idNumber'
     : question.id === 'consent'
       ? 'consentGiven'
       : question.id;
   const activeError = validationError?.control === activeErrorControl
     ? validationError.message
     : '';
-  const questionTitle = question.id === 'identityDetails' && formData.idRoute === 'alternative_route'
-    ? 'What is your trusted representative’s name?'
-    : question.title;
-
   const handleReadQuestion = () => {
     setSpeechStatus('');
-    speakText([questionTitle, question.description].filter(Boolean).join(' '), {
-      onStart: () => setSpeechStatus('Reading question.'),
-      onEnd: () => setSpeechStatus('Read-aloud finished.'),
-      onError: () => setSpeechStatus('Unable to read this question aloud. Please try again.'),
-      onUnavailable: () => setSpeechStatus('Read-aloud is not supported in this browser.'),
+    speakText([questionTitle, questionDescription].filter(Boolean).join(' '), {
+      lang,
+      bcp47,
+      stepId: question.id,
+      onStart: () => setSpeechStatus(t('wizard.speechReading')),
+      onEnd: () => setSpeechStatus(t('wizard.speechDone')),
+      onError: () => setSpeechStatus(t('wizard.speechError')),
+      onUnavailable: () => setSpeechStatus(t('wizard.speechUnavailable')),
     });
   };
 
   const handleStopSpeech = () => {
     const stopped = stopSpeech();
     setSpeechStatus(
-      stopped ? 'Read-aloud stopped.' : 'Speech synthesis is not available in this browser.'
+      stopped ? t('wizard.speechStopped') : t('wizard.speechStopUnavailable')
     );
   };
 
@@ -289,12 +300,12 @@ export default function Wizard({
         <div
           className="mx-auto mt-4 w-full max-w-3xl px-6"
           role="status"
-          aria-label="Accessibility testing mode"
+          aria-label={t('app.testMode')}
         >
           <div className="rounded-lg border border-amber-500 bg-amber-950/60 p-4 text-amber-100">
-            <p className="font-bold">Development accessibility test mode</p>
+            <p className="font-bold">{t('app.testModeTitle')}</p>
             <p className="mt-1 text-sm">
-              Answers are temporary. Progress is not saved and completing this wizard will not submit an application.
+              {t('app.testModeMessage')}
             </p>
           </div>
         </div>
@@ -311,33 +322,35 @@ export default function Wizard({
           <div className="flex items-center gap-2">
             <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" aria-hidden="true" />
             <p className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-              Savanna Onboarding
+              {t('wizard.title')}
             </p>
           </div>
-          <p className="text-xs text-gray-400 font-mono mt-0.5">Session ID: {sessionId}</p>
+          <p className="text-xs text-gray-400 font-mono mt-0.5">
+            {t('wizard.session', { id: sessionId })}
+          </p>
         </div>
-        <div className="text-right">
+        <div className="text-end">
           <div className="flex justify-end gap-2 mb-2">
             <button
               type="button"
               onClick={handleReadQuestion}
               className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-500 bg-gray-800 text-gray-300 hover:bg-gray-700"
             >
-              Read this question
+              {t('wizard.listen')}
             </button>
             <button
               type="button"
               onClick={handleStopSpeech}
               className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-500 bg-gray-800 text-gray-300 hover:bg-gray-700"
             >
-              Stop speaking
+              {t('wizard.stopSpeaking')}
             </button>
           </div>
           <p aria-live="polite" aria-atomic="true" className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-gray-900 border border-gray-800 text-gray-300">
-            Question {currentQuestionIndex + 1} of {QUESTIONS.length}
+            {t('wizard.progress', { step: currentQuestionIndex + 1, total: questions.length })}
           </p>
           <p className="text-xs text-emerald-400 mt-1.5 font-medium" role="status">
-            {isSaving ? 'Syncing...' : saveStatus}
+            {isSaving ? t('wizard.saveSyncing') : saveStatus}
           </p>
           {speechStatus && (
             <p className="text-xs text-gray-300 mt-1.5" role="status" aria-live="polite">
@@ -355,8 +368,8 @@ export default function Wizard({
           <h1 id="wizard-question-heading" ref={headingRef} tabIndex={-1} className="text-2xl font-bold mb-2">
             {questionTitle}
           </h1>
-          {question.description && (
-            <p className="text-gray-400 mb-6">{question.description}</p>
+          {questionDescription && (
+            <p className="text-gray-400 mb-6">{questionDescription}</p>
           )}
           <QuestionComponent
             {...question.props}
@@ -385,7 +398,7 @@ export default function Wizard({
               disabled={currentQuestionIndex === 0 || isSubmitting}
               className="px-6 py-3 rounded-xl border border-gray-500 font-semibold bg-gray-800 text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-400"
             >
-              Back
+              {t('wizard.back')}
             </button>
             <button
               type="button"
@@ -394,12 +407,12 @@ export default function Wizard({
               className="px-8 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-300"
             >
               {isSubmitting
-                ? 'Submitting...'
+                ? t('wizard.submitting')
                 : question.id === 'review'
                   ? isAccessibilityTestMode
-                    ? 'Finish test (no submission)'
-                    : 'Complete Registration'
-                  : 'Continue'}
+                    ? t('wizard.finishTest')
+                    : t('wizard.submit')
+                  : t('wizard.continue')}
             </button>
           </div>
         </div>
@@ -408,7 +421,7 @@ export default function Wizard({
       <footer className="w-full max-w-3xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-2 border-t border-gray-800/60 text-xs text-gray-400">
         <div className="flex items-center gap-1.5 text-emerald-400/90">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
-          Zero-Timeout Offline-First Sync Active
+          {t('wizard.footer')}
         </div>
       </footer>
     </div>

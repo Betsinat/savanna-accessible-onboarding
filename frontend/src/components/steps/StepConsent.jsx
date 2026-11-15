@@ -1,4 +1,7 @@
+import { useI18n } from '../../i18n/I18nContext';
+
 export default function StepConsent({ formData, updateFormData, error, inputRef }) {
+  const { t, simpleWords } = useI18n();
   return (
     <div>
       <div className="flex items-start gap-3 bg-gray-950 border border-gray-800 p-4 rounded-xl">
@@ -14,8 +17,8 @@ export default function StepConsent({ formData, updateFormData, error, inputRef 
           className="mt-1 accent-blue-600 h-4 w-4 cursor-pointer"
         />
         <label htmlFor="consentGiven" className="text-sm text-gray-300 cursor-pointer">
-          I consent to saving my onboarding draft and candidate profile securely to access accessible employment opportunities.
-          <span aria-hidden="true"> (required)</span>
+          {t(simpleWords ? 'wizard.consentSimple' : 'wizard.consentLabel')}
+          <span aria-hidden="true"> {t('common.required')}</span>
         </label>
       </div>
       {error && (

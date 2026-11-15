@@ -1,4 +1,5 @@
 import VoiceInput from '../wizard/VoiceInput';
+import { useI18n } from '../../i18n/I18nContext';
 
 export default function StepSupport({
   field,
@@ -8,23 +9,24 @@ export default function StepSupport({
   inputRef,
   onVoiceReviewStateChange
 }) {
+  const { t, simpleWords } = useI18n();
   const supportType = formData.supportType || '';
   const preferredContactMethod = formData.preferredContactMethod || '';
 
   if (field === 'supportType') {
     return (
       <fieldset>
-        <legend className="sr-only">Support type (required)</legend>
+        <legend className="sr-only">{t('wizard.support.legend')}</legend>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
-            { id: 'screen_reader_assistance', label: 'Screen Reader Assistance', desc: 'Help navigating with accessibility tools' },
-            { id: 'alternative_communication', label: 'Alternative Communication', desc: 'SMS or voice-preferred contact' },
-            { id: 'interview_accommodation', label: 'Interview Accommodations', desc: 'Flexible scheduling or environment' },
-            { id: 'general_guidance', label: 'General Onboarding Help', desc: 'Step-by-step guidance through the form' },
+            { id: 'screen_reader_assistance', label: t('wizard.support.screenReader'), simpleLabel: t('wizard.support.screenReaderSimple'), desc: t('wizard.support.screenReaderDescription') },
+            { id: 'alternative_communication', label: t('wizard.support.communication'), simpleLabel: t('wizard.support.communicationSimple'), desc: t('wizard.support.communicationDescription') },
+            { id: 'interview_accommodation', label: t('wizard.support.interview'), simpleLabel: t('wizard.support.interviewSimple'), desc: t('wizard.support.interviewDescription') },
+            { id: 'general_guidance', label: t('wizard.support.guidance'), simpleLabel: t('wizard.support.guidanceSimple'), desc: t('wizard.support.guidanceDescription') },
           ].map((type) => (
             <label
               key={type.id}
-              className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${
+              className={`flex items-start gap-3 p-4 rounded-xl border text-start transition-all ${
                 supportType === type.id
                   ? 'bg-blue-600/20 border-blue-500 text-white'
                   : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-700'
@@ -43,7 +45,9 @@ export default function StepSupport({
                 className="mt-1 h-4 w-4 accent-blue-600"
               />
               <span>
-                <span className="block font-semibold text-white">{type.label}</span>
+                <span className="block font-semibold text-white">
+                  {simpleWords ? type.simpleLabel : type.label}
+                </span>
                 <span className="mt-1 block text-xs text-gray-300">{type.desc}</span>
               </span>
             </label>
@@ -61,7 +65,7 @@ export default function StepSupport({
   if (field === 'preferredContactMethod') {
     return (
       <fieldset>
-        <legend className="mb-3 text-sm font-medium">Preferred contact method (required)</legend>
+        <legend className="mb-3 text-sm font-medium">{t('wizard.support.contactMethod')}</legend>
         <div className="flex gap-4">
           {['phone', 'sms', 'email'].map((method) => (
             <label key={method} className="flex items-center gap-2 cursor-pointer bg-gray-950 border border-gray-800 px-4 py-3 rounded-xl flex-1 justify-center">
@@ -77,7 +81,7 @@ export default function StepSupport({
                 onChange={(event) => updateFormData('preferredContactMethod', event.target.value)}
                 className="accent-blue-600"
               />
-              <span className="capitalize font-medium text-white">{method}</span>
+              <span className="font-medium text-white">{t(`wizard.support.${method}`)}</span>
             </label>
           ))}
         </div>
@@ -94,7 +98,7 @@ export default function StepSupport({
     <section>
       <VoiceInput
         id="additionalNotes"
-        label="Additional Notes (Optional)"
+        label={t(simpleWords ? 'wizard.fields.notesSimple' : 'wizard.fields.notes')}
         type="textarea"
         value={formData.additionalNotes || ''}
         error={error}

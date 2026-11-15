@@ -1,13 +1,9 @@
 import React from 'react';
-
-const accommodationLabels = {
-  screen_reader_compatible: 'Screen reader compatible',
-  flexible_hours: 'Flexible working hours',
-  remote_work: 'Remote work',
-  captioned_meetings: 'Captioned meetings'
-};
+import { useI18n } from '../../../i18n/I18nContext';
+import { getAccommodationLabelKey } from '../../steps/accommodations';
 
 export default function JobDetails({ job, onBack, onApply }) {
+  const { t } = useI18n();
   if (!job) return null;
 
   const accommodations = job.offeredAccommodations || [];
@@ -20,12 +16,12 @@ export default function JobDetails({ job, onBack, onApply }) {
         onClick={onBack}
         className="text-sm text-blue-300 hover:text-blue-200 mb-6"
       >
-        ← Back to opportunities
+        ← {t('jobs.back')}
       </button>
 
       <header>
         <span className="text-xs font-semibold text-emerald-300 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1.5 rounded-full">
-          Active position
+          {t('jobs.activePosition')}
         </span>
 
         <h1 className="text-3xl font-bold text-white mt-5">
@@ -38,14 +34,14 @@ export default function JobDetails({ job, onBack, onApply }) {
 
         {job.location && (
           <p className="text-sm text-gray-400 mt-2">
-            Location: {job.location}
+            {t('jobs.location', { location: job.location })}
           </p>
         )}
       </header>
 
       <div className="mt-8">
         <h2 className="text-lg font-bold text-white mb-3">
-          About this position
+          {t('jobs.about')}
         </h2>
         <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
           {job.description}
@@ -55,7 +51,7 @@ export default function JobDetails({ job, onBack, onApply }) {
       {requirements.length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-bold text-white mb-3">
-            Requirements
+            {t('jobs.requirements')}
           </h2>
           <ul className="space-y-2 list-disc list-inside text-gray-300">
             {requirements.map((requirement, index) => (
@@ -67,23 +63,26 @@ export default function JobDetails({ job, onBack, onApply }) {
 
       <section className="mt-8">
         <h2 className="text-lg font-bold text-white mb-3">
-          Workplace accommodations
+          {t('jobs.accommodations')}
         </h2>
 
         {accommodations.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {accommodations.map((item) => (
-              <span
-                key={item}
-                className="text-sm bg-emerald-400/10 border border-emerald-400/20 text-emerald-200 px-3 py-2 rounded-lg"
-              >
-                {accommodationLabels[item] || item.replaceAll('_', ' ')}
-              </span>
-            ))}
+            {accommodations.map((item) => {
+              const labelKey = getAccommodationLabelKey(item);
+              return (
+                <span
+                  key={item}
+                  className="text-sm bg-emerald-400/10 border border-emerald-400/20 text-emerald-200 px-3 py-2 rounded-lg"
+                >
+                  {labelKey ? t(`wizard.accommodations.${labelKey}`) : item}
+                </span>
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-gray-400">
-            No specific accommodations have been listed for this position.
+            {t('jobs.none')}
           </p>
         )}
       </section>
@@ -94,7 +93,7 @@ export default function JobDetails({ job, onBack, onApply }) {
           onClick={onApply}
           className="w-full sm:w-auto px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold text-white transition"
         >
-          Apply for this position
+          {t('jobs.apply')}
         </button>
       </div>
     </section>
