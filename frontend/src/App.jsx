@@ -37,22 +37,37 @@ const navigationItems = [
   { id: 'employer', label: 'Employer View (Demo)' }
 ];
 
+function getAccessibilityTestModeFromUrl() {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('a11yTest') === '1';
+}
+
 export default function App() {
   const [activeView, setActiveView] = useState('learner');
+  const [isAccessibilityTestMode, setIsAccessibilityTestMode] = useState(
+    getAccessibilityTestModeFromUrl
+  );
+  const [testFormData, setTestFormData] = useState({});
+  const [testSessionId, setTestSessionId] = useState(() =>
+    isAccessibilityTestMode ? createSessionId() : null
+  );
 
   const [isRegistered, setIsRegistered] = usePersistentState(
     'savanna_completed',
-    false
+    false,
+    !isAccessibilityTestMode
   );
 
   const [formData, setFormData] = usePersistentState(
     'savanna_form_data',
-    {}
+    {},
+    !isAccessibilityTestMode
   );
 
   const [sessionId, setSessionId] = usePersistentState(
     'savanna_session_id',
-    createSessionId
+    createSessionId,
+    !isAccessibilityTestMode
   );
 
   const updateFormData = (key, value) => {
@@ -60,6 +75,35 @@ export default function App() {
       ...previous,
       [key]: value
     }));
+  };
+
+  const updateTestFormData = (key, value) => {
+    setTestFormData((previous) => ({
+      ...previous,
+      [key]: value
+    }));
+  };
+
+  const toggleAccessibilityTestMode = () => {
+    const nextMode = !isAccessibilityTestMode;
+    const nextUrl = new URL(window.location.href);
+
+    if (nextMode) {
+      nextUrl.searchParams.set('a11yTest', '1');
+      setTestFormData({});
+      setTestSessionId(createSessionId());
+    } else {
+      nextUrl.searchParams.delete('a11yTest');
+      setTestSessionId(null);
+    }
+
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`
+    );
+    setActiveView('learner');
+    setIsAccessibilityTestMode(nextMode);
   };
 
   const handleWizardSuccess = ({
@@ -109,6 +153,22 @@ export default function App() {
                   {item.label}
                 </button>
               ))}
+              {import.meta.env.DEV && (
+                <button
+                  type="button"
+                  onClick={toggleAccessibilityTestMode}
+                  aria-pressed={isAccessibilityTestMode}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-medium border ${
+                    isAccessibilityTestMode
+                      ? 'bg-amber-700 border-amber-500 text-white'
+                      : 'bg-gray-900 border-gray-700 text-amber-200 hover:bg-gray-800'
+                  }`}
+                >
+                  {isAccessibilityTestMode
+                    ? 'Exit accessibility test mode'
+                    : 'Accessibility test mode'}
+                </button>
+              )}
             </nav>
           </div>
         </div>
@@ -116,7 +176,16 @@ export default function App() {
 
       <main>
         {activeView === 'learner' && (
-          isRegistered ? (
+          isAccessibilityTestMode ? (
+            <Wizard
+              key="accessibility-test"
+              formData={testFormData}
+              updateFormData={updateTestFormData}
+              onSuccess={handleWizardSuccess}
+              sessionId={testSessionId}
+              isAccessibilityTestMode
+            />
+          ) : isRegistered ? (
             <section className="min-h-[60vh] flex items-center justify-center px-6 py-16">
               <div className="max-w-xl text-center">
                 <div className="text-4xl mb-5" aria-hidden="true">
@@ -144,6 +213,7 @@ export default function App() {
             </section>
           ) : (
             <Wizard
+              key="normal"
               formData={formData}
               updateFormData={updateFormData}
               onSuccess={handleWizardSuccess}

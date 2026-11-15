@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export function usePersistentState(key, initialValue) {
+export function usePersistentState(key, initialValue, persistenceEnabled = true) {
   const [state, setState] = useState(() => {
     try {
       const saved = localStorage.getItem(key);
@@ -15,26 +15,30 @@ export function usePersistentState(key, initialValue) {
 
   useEffect(() => {
     stateRef.current = state;
+    if (!persistenceEnabled) return;
+
     try {
       localStorage.setItem(key, JSON.stringify(state));
     } catch (err) {
       console.error(`Error saving local state for ${key}:`, err);
     }
-  }, [key, state]);
+  }, [key, persistenceEnabled, state]);
 
   const setPersistentState = useCallback((nextState) => {
     const resolvedState =
       typeof nextState === 'function' ? nextState(stateRef.current) : nextState;
 
     stateRef.current = resolvedState;
-    try {
-      localStorage.setItem(key, JSON.stringify(resolvedState));
-    } catch (err) {
-      console.error(`Error saving local state for ${key}:`, err);
+    if (persistenceEnabled) {
+      try {
+        localStorage.setItem(key, JSON.stringify(resolvedState));
+      } catch (err) {
+        console.error(`Error saving local state for ${key}:`, err);
+      }
     }
 
     setState(() => resolvedState);
-  }, [key]);
+  }, [key, persistenceEnabled]);
 
   return [state, setPersistentState];
 }

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { usePersistentState } from '../hooks/userPersistentState';
 import { registerCandidate, saveOnboardingDraft } from '../services/api';
 import StepPersonal from './steps/StepPersonal';
 import StepIdentity from './steps/StepIdentity';
@@ -83,22 +82,6 @@ function isValidPhoneOrEmail(value) {
     (phonePattern.test(normalized) && digitCount >= 7 && digitCount <= 15);
 }
 
-function getInitialQuestionIndex(formData) {
-  if (typeof formData.fullName !== 'string' || !formData.fullName.trim()) return 0;
-  if (!formData.phoneOrEmail || !isValidPhoneOrEmail(formData.phoneOrEmail)) return 1;
-  if (!['standard_id', 'alternative_route'].includes(formData.idRoute)) return 2;
-
-  const identityDetails = formData.idDetails || {};
-  const hasIdentityDetails = formData.idRoute === 'alternative_route'
-    ? identityDetails.proxyName?.trim()
-    : identityDetails.idNumber?.trim();
-  if (!hasIdentityDetails) return 3;
-  if (!formData.supportType?.trim()) return 4;
-  if (!formData.preferredContactMethod) return 5;
-  if (!formData.consentGiven) return 8;
-  return 9;
-}
-
 function getValidationError(questionId, formData) {
   switch (questionId) {
     case 'fullName':
@@ -147,29 +130,25 @@ function getValidationError(questionId, formData) {
   }
 }
 
-export default function Wizard({ formData, updateFormData, onSuccess, sessionId }) {
-  const [storedQuestionIndex, setStoredQuestionIndex] = usePersistentState(
-    'savanna_current_question',
-    () => getInitialQuestionIndex(formData)
-  );
+export default function Wizard({
+  formData,
+  updateFormData,
+  onSuccess,
+  sessionId,
+  isAccessibilityTestMode = false
+}) {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [validationError, setValidationError] = useState(null);
   const [submissionError, setSubmissionError] = useState('');
+  const [testCompletionStatus, setTestCompletionStatus] = useState('');
+  const [speechStatus, setSpeechStatus] = useState('');
   const headingRef = useRef(null);
   const invalidControlRef = useRef(null);
-  const currentQuestionIndex = Number.isInteger(storedQuestionIndex)
-    ? Math.min(Math.max(storedQuestionIndex, 0), QUESTIONS.length - 1)
-    : 0;
   const question = QUESTIONS[currentQuestionIndex];
   const QuestionComponent = question.Component;
-
-  useEffect(() => {
-    if (storedQuestionIndex !== currentQuestionIndex) {
-      setStoredQuestionIndex(currentQuestionIndex);
-    }
-  }, [currentQuestionIndex, setStoredQuestionIndex, storedQuestionIndex]);
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -182,6 +161,12 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
   }, [validationError]);
 
   useEffect(() => {
+    if (isAccessibilityTestMode) {
+      setIsSaving(false);
+      setSaveStatus('');
+      return undefined;
+    }
+
     const timer = setTimeout(async () => {
       setIsSaving(true);
       try {
@@ -200,12 +185,13 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [currentQuestionIndex, formData, sessionId]);
+  }, [currentQuestionIndex, formData, isAccessibilityTestMode, sessionId]);
 
   const handleBack = () => {
     setValidationError(null);
     setSubmissionError('');
-    setStoredQuestionIndex((index) => Math.max(index - 1, 0));
+    setTestCompletionStatus('');
+    setCurrentQuestionIndex((index) => Math.max(index - 1, 0));
   };
 
   const handleContinue = async () => {
@@ -214,14 +200,20 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
       setSubmissionError('');
       setValidationError(error);
       if (question.id === 'review' && error.control === 'consentGiven') {
-        setStoredQuestionIndex(8);
+        setCurrentQuestionIndex(8);
       }
       return;
     }
 
     setValidationError(null);
+    setTestCompletionStatus('');
     if (question.id !== 'review') {
-      setStoredQuestionIndex((index) => Math.min(index + 1, QUESTIONS.length - 1));
+      setCurrentQuestionIndex((index) => Math.min(index + 1, QUESTIONS.length - 1));
+      return;
+    }
+
+    if (isAccessibilityTestMode) {
+      setTestCompletionStatus('Accessibility test complete. No application was saved or submitted.');
       return;
     }
 
@@ -254,6 +246,7 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
     updateFormData(key, value);
     setValidationError(null);
     setSubmissionError('');
+    setTestCompletionStatus('');
   };
 
   const progressPercentage = ((currentQuestionIndex + 1) / QUESTIONS.length) * 100;
@@ -265,9 +258,43 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
   const activeError = validationError?.control === activeErrorControl
     ? validationError.message
     : '';
+  const questionTitle = question.id === 'identityDetails' && formData.idRoute === 'alternative_route'
+    ? 'What is your trusted representative’s name?'
+    : question.title;
+
+  const handleReadQuestion = () => {
+    setSpeechStatus('');
+    speakText([questionTitle, question.description].filter(Boolean).join(' '), {
+      onStart: () => setSpeechStatus('Reading question.'),
+      onEnd: () => setSpeechStatus('Read-aloud finished.'),
+      onError: () => setSpeechStatus('Unable to read this question aloud. Please try again.'),
+      onUnavailable: () => setSpeechStatus('Read-aloud is not supported in this browser.'),
+    });
+  };
+
+  const handleStopSpeech = () => {
+    const stopped = stopSpeech();
+    setSpeechStatus(
+      stopped ? 'Read-aloud stopped.' : 'Speech synthesis is not available in this browser.'
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#0b0e14] text-white flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+      {isAccessibilityTestMode && (
+        <div
+          className="mx-auto mt-4 w-full max-w-3xl px-6"
+          role="status"
+          aria-label="Accessibility testing mode"
+        >
+          <div className="rounded-lg border border-amber-500 bg-amber-950/60 p-4 text-amber-100">
+            <p className="font-bold">Development accessibility test mode</p>
+            <p className="mt-1 text-sm">
+              Answers are temporary. Progress is not saved and completing this wizard will not submit an application.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="w-full bg-gray-900 h-1.5" aria-hidden="true">
         <div
           className="bg-gradient-to-r from-blue-500 to-emerald-400 h-1.5 transition-all duration-500 ease-out"
@@ -289,14 +316,14 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
           <div className="flex justify-end gap-2 mb-2">
             <button
               type="button"
-              onClick={() => speakText(document.querySelector('main')?.innerText || '')}
+              onClick={handleReadQuestion}
               className="text-xs font-medium px-2 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700"
             >
               Read this question
             </button>
             <button
               type="button"
-              onClick={stopSpeech}
+              onClick={handleStopSpeech}
               className="text-xs font-medium px-2 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700"
             >
               Stop speaking
@@ -308,15 +335,18 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
           <p className="text-xs text-emerald-400 mt-1.5 font-medium" role="status">
             {isSaving ? 'Syncing...' : saveStatus}
           </p>
+          {speechStatus && (
+            <p className="text-xs text-gray-300 mt-1.5" role="status" aria-live="polite">
+              {speechStatus}
+            </p>
+          )}
         </div>
       </header>
 
       <main className="w-full max-w-3xl mx-auto px-6 my-auto py-6">
         <div className="bg-gray-900/80 backdrop-blur-xl border border-gray-800/80 rounded-3xl p-8 md:p-10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
           <h1 id="wizard-question-heading" ref={headingRef} tabIndex={-1} className="text-2xl font-bold mb-2">
-            {question.id === 'identityDetails' && formData.idRoute === 'alternative_route'
-              ? 'What is your trusted representative’s name?'
-              : question.title}
+            {questionTitle}
           </h1>
           {question.description && (
             <p className="text-gray-400 mb-6">{question.description}</p>
@@ -332,6 +362,11 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
           {submissionError && (
             <p className="text-red-400 text-sm font-medium mt-4" role="alert">
               {submissionError}
+            </p>
+          )}
+          {testCompletionStatus && (
+            <p className="text-amber-200 text-sm font-medium mt-4" role="status">
+              {testCompletionStatus}
             </p>
           )}
 
@@ -353,7 +388,9 @@ export default function Wizard({ formData, updateFormData, onSuccess, sessionId 
               {isSubmitting
                 ? 'Submitting...'
                 : question.id === 'review'
-                  ? 'Complete Registration'
+                  ? isAccessibilityTestMode
+                    ? 'Finish test (no submission)'
+                    : 'Complete Registration'
                   : 'Continue'}
             </button>
           </div>
