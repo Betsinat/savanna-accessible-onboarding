@@ -7,6 +7,51 @@ const JobApplication = require('../models/jobApplication');
 const OnboardingProfile = require('../models/onboardingProfile');
 
 const router = express.Router();
+// GET /api/jobs/schema
+// Expose active jobs using Schema.org JobPosting JSON-LD
+router.get('/jobs/schema', async (req, res) => {
+  try {
+    const jobs = await Job.find({ status: 'active' })
+      .select('-__v')
+      .sort({ createdAt: -1 });
+
+    const jobPostings = jobs.map(job => ({
+      '@context': 'https://schema.org',
+      '@type': 'JobPosting',
+      title: job.title,
+      description: job.description,
+      datePosted: job.createdAt.toISOString(),
+      hiringOrganization: {
+        '@type': 'Organization',
+        name: job.company
+      },
+      jobLocation: {
+        '@type': 'Place',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: job.location,
+          addressCountry: 'ET'
+        }
+      },
+      qualifications: job.requirements.join(', ')
+    }));
+
+    return res.status(200).json({
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      numberOfItems: jobPostings.length,
+      itemListElement: jobPostings
+    });
+
+  } catch (error) {
+    console.error('Job structured data error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve structured job data'
+    });
+  }
+});
 
 // GET /api/jobs
 // Retrieve active jobs and filter by candidate accommodations
