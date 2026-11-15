@@ -7,3 +7,8 @@ body {
   color: #ffffff;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
+
+:focus-visible {
+  outline: 3px solid #facc15;
+  outline-offset: 3px;
+}

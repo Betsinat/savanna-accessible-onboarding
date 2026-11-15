@@ -143,6 +143,7 @@ export default function Wizard({
   const [saveStatus, setSaveStatus] = useState('');
   const [validationError, setValidationError] = useState(null);
   const [submissionError, setSubmissionError] = useState('');
+  const [isVoiceReviewOpen, setIsVoiceReviewOpen] = useState(false);
   const [testCompletionStatus, setTestCompletionStatus] = useState('');
   const [speechStatus, setSpeechStatus] = useState('');
   const headingRef = useRef(null);
@@ -188,6 +189,7 @@ export default function Wizard({
   }, [currentQuestionIndex, formData, isAccessibilityTestMode, sessionId]);
 
   const handleBack = () => {
+    setIsVoiceReviewOpen(false);
     setValidationError(null);
     setSubmissionError('');
     setTestCompletionStatus('');
@@ -195,6 +197,8 @@ export default function Wizard({
   };
 
   const handleContinue = async () => {
+    if (isVoiceReviewOpen) return;
+
     const error = getValidationError(question.id, formData);
     if (error) {
       setSubmissionError('');
@@ -310,21 +314,21 @@ export default function Wizard({
               Savanna Onboarding
             </p>
           </div>
-          <p className="text-xs text-gray-500 font-mono mt-0.5">Session ID: {sessionId}</p>
+          <p className="text-xs text-gray-400 font-mono mt-0.5">Session ID: {sessionId}</p>
         </div>
         <div className="text-right">
           <div className="flex justify-end gap-2 mb-2">
             <button
               type="button"
               onClick={handleReadQuestion}
-              className="text-xs font-medium px-2 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700"
+              className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-500 bg-gray-800 text-gray-300 hover:bg-gray-700"
             >
               Read this question
             </button>
             <button
               type="button"
               onClick={handleStopSpeech}
-              className="text-xs font-medium px-2 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700"
+              className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-500 bg-gray-800 text-gray-300 hover:bg-gray-700"
             >
               Stop speaking
             </button>
@@ -343,7 +347,10 @@ export default function Wizard({
         </div>
       </header>
 
-      <main className="w-full max-w-3xl mx-auto px-6 my-auto py-6">
+      <section
+        aria-labelledby="wizard-question-heading"
+        className="w-full max-w-3xl mx-auto px-6 my-auto py-6"
+      >
         <div className="bg-gray-900/80 backdrop-blur-xl border border-gray-800/80 rounded-3xl p-8 md:p-10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
           <h1 id="wizard-question-heading" ref={headingRef} tabIndex={-1} className="text-2xl font-bold mb-2">
             {questionTitle}
@@ -357,6 +364,7 @@ export default function Wizard({
             updateFormData={handleFormDataChange}
             error={activeError}
             inputRef={invalidControlRef}
+            onVoiceReviewStateChange={setIsVoiceReviewOpen}
           />
 
           {submissionError && (
@@ -375,15 +383,15 @@ export default function Wizard({
               type="button"
               onClick={handleBack}
               disabled={currentQuestionIndex === 0 || isSubmitting}
-              className="px-6 py-3 rounded-xl font-semibold bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-40"
+              className="px-6 py-3 rounded-xl border border-gray-500 font-semibold bg-gray-800 text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-400"
             >
               Back
             </button>
             <button
               type="button"
               onClick={handleContinue}
-              disabled={isSubmitting}
-              className="px-8 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50"
+              disabled={isSubmitting || isVoiceReviewOpen}
+              className="px-8 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-300"
             >
               {isSubmitting
                 ? 'Submitting...'
@@ -395,12 +403,9 @@ export default function Wizard({
             </button>
           </div>
         </div>
-      </main>
+      </section>
 
-      <footer className="w-full max-w-3xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-2 border-t border-gray-800/60 text-xs text-gray-500">
-        <div className="font-mono truncate max-w-xs md:max-w-md">
-          State: <span className="text-gray-400">{JSON.stringify(formData)}</span>
-        </div>
+      <footer className="w-full max-w-3xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-2 border-t border-gray-800/60 text-xs text-gray-400">
         <div className="flex items-center gap-1.5 text-emerald-400/90">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
           Zero-Timeout Offline-First Sync Active

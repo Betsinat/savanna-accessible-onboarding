@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import TranscriptionReview from './TranscriptionReview';
 
 export default function VoiceInput({
   value,
@@ -9,14 +10,21 @@ export default function VoiceInput({
   type,
   error = '',
   inputRef,
+  onReviewStateChange,
+  audioSrc,
   required = false,
 }) {
   const [selectedLang, setSelectedLang] = useState('en-US');
   const [isListening, setIsListening] = useState(false);
   const [status, setStatus] = useState('');
   const [voiceError, setVoiceError] = useState('');
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [pendingTranscript, setPendingTranscript] = useState('');
   const recognitionRef = useRef(null);
   const valueRef = useRef(value || '');
+  const fieldRef = useRef(null);
+  const voiceButtonRef = useRef(null);
+  const focusAfterReviewRef = useRef(null);
   const isTextArea = type === 'textarea';
   const SpeechRecognition =
     typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -34,6 +42,16 @@ export default function VoiceInput({
   useEffect(() => {
     valueRef.current = value || '';
   }, [value]);
+
+  useEffect(() => {
+    if (isReviewing || !focusAfterReviewRef.current) return;
+
+    const target = focusAfterReviewRef.current === 'voice'
+      ? voiceButtonRef.current
+      : fieldRef.current;
+    target?.focus();
+    focusAfterReviewRef.current = null;
+  }, [isReviewing]);
 
   useEffect(() => {
     return () => {
@@ -67,9 +85,25 @@ export default function VoiceInput({
     onChange(nextValue);
   };
 
+  const assignFieldRef = (element) => {
+    fieldRef.current = element;
+    if (typeof inputRef === 'function') {
+      inputRef(element);
+    } else if (inputRef) {
+      inputRef.current = element;
+    }
+  };
+
+  const closeReview = (focusTarget = 'field') => {
+    focusAfterReviewRef.current = focusTarget;
+    setIsReviewing(false);
+    onReviewStateChange?.(false);
+  };
+
   const startSpeechRecognition = () => {
     setVoiceError('');
     setStatus('');
+    setPendingTranscript('');
 
     if (!isSpeechRecognitionSupported) {
       setVoiceError('Speech-to-text is not supported in this browser. You can type your answer.');
@@ -100,15 +134,17 @@ export default function VoiceInput({
 
         receivedResult = true;
         setVoiceError('');
-        const currentValue = valueRef.current;
-        handleValueChange(currentValue ? `${currentValue} ${transcript}` : transcript);
-        setStatus('Speech recognized.');
+        setStatus('');
+        setPendingTranscript(transcript);
+        setIsReviewing(true);
+        onReviewStateChange?.(true);
       };
       recognition.onerror = (event) => {
         if (recognitionRef.current !== recognition) return;
         recognitionRef.current = null;
         setIsListening(false);
         setStatus('');
+        if (receivedResult) return;
         setVoiceError(getRecognitionErrorMessage(event.error));
       };
       recognition.onend = () => {
@@ -152,74 +188,116 @@ export default function VoiceInput({
     startSpeechRecognition();
   };
 
+  const handleConfirmTranscript = () => {
+    const transcript = pendingTranscript.trim();
+    if (!transcript) return;
+
+    const currentValue = valueRef.current.trim();
+    handleValueChange(currentValue ? `${currentValue} ${transcript}` : transcript);
+    setPendingTranscript('');
+    setStatus('Transcription confirmed. You can continue when ready.');
+    closeReview();
+  };
+
+  const handleContinueManually = () => {
+    setPendingTranscript('');
+    setStatus('Continuing with your typed answer. The transcription was not added.');
+    closeReview();
+  };
+
+  const handleRetryRecognition = () => {
+    setPendingTranscript('');
+    focusAfterReviewRef.current = 'voice';
+    setIsReviewing(false);
+    onReviewStateChange?.(false);
+    startSpeechRecognition();
+  };
+
   const sharedProps = {
     id,
     name: id,
     placeholder,
     value: value || '',
-    ref: inputRef,
+    ref: assignFieldRef,
     required,
-    'aria-required': required,
     'aria-invalid': Boolean(error),
     'aria-describedby': describedBy,
     onChange: (event) => handleValueChange(event.target.value),
-    className:
-      'w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500',
+    className: `w-full bg-gray-950 border ${
+      error ? 'border-red-400' : 'border-gray-500'
+    } rounded-xl px-4 py-3 text-white focus:border-blue-500`,
   };
 
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium mb-2">
-        {label}
-      </label>
-      {isTextArea ? <textarea {...sharedProps} rows={3} /> : <input {...sharedProps} type={type} />}
-      {error && (
-        <p id={errorId} className="mt-2 text-sm text-red-400" role="alert">
-          {error}
-        </p>
-      )}
-
-      {isSpeechRecognitionSupported ? (
-        <div className="mt-3 flex flex-wrap items-end gap-3">
-          <div>
-            <label htmlFor={`${id}-voice-language`} className="block text-sm font-medium mb-1">
-              Voice input language
-            </label>
-            <select
-              id={`${id}-voice-language`}
-              value={selectedLang}
-              onChange={(event) => setSelectedLang(event.target.value)}
-              disabled={isListening}
-              className="bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-white"
-            >
-              <option value="en-US">English</option>
-              <option value="am-ET">Amharic</option>
-            </select>
-          </div>
-          <button
-            type="button"
-            onClick={handleCapture}
-            aria-pressed={isListening}
-            className="px-3 py-2 rounded-lg bg-gray-800 text-gray-200 hover:bg-gray-700"
-          >
-            {isListening ? 'Stop listening' : voiceError ? 'Try voice input again' : 'Use voice input'}
-          </button>
-        </div>
+      {isReviewing ? (
+        <TranscriptionReview
+          id={id}
+          transcript={pendingTranscript}
+          onTranscriptChange={setPendingTranscript}
+          onRetry={handleRetryRecognition}
+          onContinueManually={handleContinueManually}
+          onConfirm={handleConfirmTranscript}
+          existingText={valueRef.current}
+          audioSrc={audioSrc}
+        />
       ) : (
-        <p id={voiceErrorId} className="mt-2 text-sm text-gray-300" role="status" aria-live="polite">
-          Speech-to-text is not supported in this browser. You can type your answer.
-        </p>
-      )}
+        <>
+          <label htmlFor={id} className="block text-sm font-medium mb-2">
+            {label}
+            {required && <span aria-hidden="true"> (required)</span>}
+          </label>
+          {isTextArea ? <textarea {...sharedProps} rows={3} /> : <input {...sharedProps} type={type} />}
+          {error && (
+            <p id={errorId} className="mt-2 text-sm text-red-400">
+              {error}
+            </p>
+          )}
 
-      {status && (
-        <p id={statusId} className="mt-2 text-sm text-gray-300" role="status" aria-live="polite">
-          {status}
-        </p>
-      )}
-      {voiceError && (
-        <p id={voiceErrorId} className="mt-2 text-sm text-red-400" role="alert">
-          {voiceError}
-        </p>
+          {isSpeechRecognitionSupported ? (
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <div>
+                <label htmlFor={`${id}-voice-language`} className="block text-sm font-medium mb-1">
+                  Voice input language
+                </label>
+                <select
+                  id={`${id}-voice-language`}
+                  value={selectedLang}
+                  onChange={(event) => setSelectedLang(event.target.value)}
+                  disabled={isListening}
+                  className="bg-gray-950 border border-gray-500 rounded-lg px-3 py-2 text-white"
+                >
+                  <option value="en-US">English</option>
+                  <option value="am-ET">Amharic</option>
+                </select>
+              </div>
+              <button
+                ref={voiceButtonRef}
+                type="button"
+                onClick={handleCapture}
+                aria-pressed={isListening}
+                className="px-3 py-2 rounded-lg border border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-700"
+              >
+                {isListening ? 'Stop listening' : voiceError ? 'Try voice input again' : 'Use voice input'}
+              </button>
+            </div>
+          ) : (
+            <p id={voiceErrorId} className="mt-2 text-sm text-gray-300" role="status" aria-live="polite">
+              Speech-to-text is not supported in this browser. You can type your answer.
+            </p>
+          )}
+
+          {status && (
+            <p id={statusId} className="mt-2 text-sm text-gray-300" role="status" aria-live="polite">
+              {status}
+            </p>
+          )}
+          {voiceError && (
+            <p id={voiceErrorId} className="mt-2 text-sm text-red-400" role="alert">
+              {voiceError}
+            </p>
+          )}
+        </>
       )}
     </div>
   );

@@ -87,7 +87,7 @@ export default function CareerGateway({ formData = {}, sessionId }) {
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl font-bold">
+            <h2 id="available-opportunities-heading" className="text-xl font-bold">
               Available opportunities
             </h2>
 
@@ -104,7 +104,7 @@ export default function CareerGateway({ formData = {}, sessionId }) {
             <select
               value={match}
               onChange={(event) => setMatch(event.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white"
+              className="bg-gray-900 border border-gray-500 rounded-lg px-4 py-3 text-white"
             >
               <option value="any">Match any preference</option>
               <option value="all">Match all preferences</option>
@@ -125,7 +125,7 @@ export default function CareerGateway({ formData = {}, sessionId }) {
             <button
               type="button"
               onClick={refreshJobs}
-              className="mt-4 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white"
+              className="mt-4 px-4 py-2 rounded-lg border border-gray-500 bg-gray-800 hover:bg-gray-700 text-white"
             >
               Try again
             </button>
@@ -139,7 +139,7 @@ export default function CareerGateway({ formData = {}, sessionId }) {
             }}
           />
         )}
-      </main>
+      </section>
     </div>
   );
 }

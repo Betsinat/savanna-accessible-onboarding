@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { createEmployerJob } from '../../services/api';
 
 const accommodationOptions = [
@@ -35,6 +35,9 @@ export default function JobPostingForm({ onJobPublished }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const titleRef = useRef(null);
+  const companyRef = useRef(null);
+  const descriptionRef = useRef(null);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -63,12 +66,15 @@ export default function JobPostingForm({ onJobPublished }) {
     setError('');
     setSuccess('');
 
-    if (
-      !form.title.trim() ||
-      !form.company.trim() ||
-      !form.description.trim()
-    ) {
+    const firstMissingField = [
+      { value: form.title, ref: titleRef },
+      { value: form.company, ref: companyRef },
+      { value: form.description, ref: descriptionRef },
+    ].find(({ value }) => !value.trim());
+
+    if (firstMissingField) {
       setError('Please complete the job title, company, and description.');
+      firstMissingField.ref.current?.focus();
       return;
     }
 
@@ -109,15 +115,20 @@ export default function JobPostingForm({ onJobPublished }) {
   return (
     <form
       onSubmit={handleSubmit}
+      aria-labelledby="job-form-heading"
+      aria-describedby="job-form-help"
       className="bg-gray-900 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6"
     >
       <div>
-        <h2 className="text-2xl font-bold text-white">
+        <h2 id="job-form-heading" className="text-2xl font-bold text-white">
           Post a job opportunity
         </h2>
-        <p className="text-gray-400 text-sm mt-2">
+        <p id="job-form-help" className="text-gray-400 text-sm mt-2">
           Share an opportunity and tell candidates which workplace
           accommodations your company offers.
+        </p>
+        <p className="mt-2 text-sm text-gray-400">
+          Fields marked * are required.
         </p>
       </div>
 
@@ -131,14 +142,17 @@ export default function JobPostingForm({ onJobPublished }) {
           </label>
           <input
             id="job-title"
+            ref={titleRef}
             name="title"
             type="text"
             value={form.title}
             onChange={handleChange}
             required
+            aria-invalid={Boolean(error && !form.title.trim())}
+            aria-describedby={error && !form.title.trim() ? 'job-form-error' : undefined}
             maxLength={150}
             placeholder="e.g. Junior Software Developer"
-            className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -151,14 +165,17 @@ export default function JobPostingForm({ onJobPublished }) {
           </label>
           <input
             id="company-name"
+            ref={companyRef}
             name="company"
             type="text"
             value={form.company}
             onChange={handleChange}
             required
+            aria-invalid={Boolean(error && !form.company.trim())}
+            aria-describedby={error && !form.company.trim() ? 'job-form-error' : undefined}
             maxLength={150}
             placeholder="e.g. Savanna Technologies"
-            className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -172,14 +189,17 @@ export default function JobPostingForm({ onJobPublished }) {
         </label>
         <textarea
           id="job-description"
+          ref={descriptionRef}
           name="description"
           value={form.description}
           onChange={handleChange}
           required
+          aria-invalid={Boolean(error && !form.description.trim())}
+          aria-describedby={error && !form.description.trim() ? 'job-form-error' : undefined}
           maxLength={5000}
           rows={5}
           placeholder="Describe the role and its responsibilities..."
-          className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
@@ -197,7 +217,7 @@ export default function JobPostingForm({ onJobPublished }) {
           value={form.location}
           onChange={handleChange}
           placeholder="e.g. Addis Ababa or Remote"
-          className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
@@ -215,9 +235,9 @@ export default function JobPostingForm({ onJobPublished }) {
           onChange={handleChange}
           rows={4}
           placeholder={'Enter one requirement per line:\nJavaScript\nProblem solving\nCommunication'}
-          className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
         />
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-gray-400 mt-2">
           Enter each requirement on a separate line.
         </p>
       </div>
@@ -251,7 +271,7 @@ export default function JobPostingForm({ onJobPublished }) {
       </fieldset>
 
       {error && (
-        <p role="alert" className="text-sm text-red-400 bg-red-950/30 p-3 rounded-lg">
+        <p id="job-form-error" role="alert" className="text-sm text-red-400 bg-red-950/30 p-3 rounded-lg">
           {error}
         </p>
       )}
@@ -265,7 +285,7 @@ export default function JobPostingForm({ onJobPublished }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full sm:w-auto px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition"
+        className="w-full sm:w-auto px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-300 disabled:cursor-not-allowed text-white font-semibold transition"
       >
         {loading ? 'Publishing...' : 'Publish job'}
       </button>

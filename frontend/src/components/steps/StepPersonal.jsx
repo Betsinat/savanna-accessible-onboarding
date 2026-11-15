@@ -11,7 +11,14 @@ const personalQuestions = {
   },
 };
 
-export default function StepPersonal({ field, formData, updateFormData, error, inputRef }) {
+export default function StepPersonal({
+  field,
+  formData,
+  updateFormData,
+  error,
+  inputRef,
+  onVoiceReviewStateChange
+}) {
   const question = personalQuestions[field];
 
   return (
@@ -23,6 +30,7 @@ export default function StepPersonal({ field, formData, updateFormData, error, i
         value={formData[field] || ''}
         error={error}
         inputRef={inputRef}
+        onReviewStateChange={onVoiceReviewStateChange}
         onChange={(value) => updateFormData(field, value)}
       />
     </section>
