@@ -1,28 +1,27 @@
-const ACCOMMODATIONS = [
-  { id: 'screen_reader_compatible', label: 'Screen Reader Compatible' },
-  { id: 'flexible_hours', label: 'Flexible Working Hours' },
-  { id: 'remote_work', label: 'Remote Work Enabled' },
-  { id: 'captioned_meetings', label: 'Captioned Meetings' },
-];
+import { useI18n } from '../../i18n/I18nContext';
+import { ACCOMMODATIONS } from './accommodations';
 
 export default function StepAccommodations({ formData, updateFormData }) {
+  const { t, simpleWords } = useI18n();
   const selected = Array.isArray(formData.accommodationPreferences)
     ? formData.accommodationPreferences
     : [];
 
   const toggleAccommodation = (id) => {
-    const updated = selected.includes(id)
-      ? selected.filter((item) => item !== id)
-      : [...selected, id];
+    const updated = id === 'prefer_not_to_say'
+      ? selected.includes(id) ? [] : [id]
+      : selected.includes(id)
+        ? selected.filter((item) => item !== id)
+        : [...selected.filter((item) => item !== 'prefer_not_to_say'), id];
 
     updateFormData('accommodationPreferences', updated);
   };
 
   return (
     <fieldset>
-      <legend className="sr-only">Available accommodations</legend>
+      <legend className="sr-only">{t('wizard.accommodations.legend')}</legend>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {ACCOMMODATIONS.map(({ id, label }) => (
+        {ACCOMMODATIONS.map(({ id, labelKey }) => (
           <label
             key={id}
             className="flex items-center gap-3 p-4 rounded-xl border bg-gray-950 border-gray-800 text-gray-300"
@@ -33,7 +32,7 @@ export default function StepAccommodations({ formData, updateFormData }) {
               onChange={() => toggleAccommodation(id)}
               className="accent-blue-600 h-4 w-4"
             />
-            <span>{label}</span>
+            <span>{t(`wizard.accommodations.${simpleWords ? `${labelKey}Simple` : labelKey}`)}</span>
           </label>
         ))}
       </div>

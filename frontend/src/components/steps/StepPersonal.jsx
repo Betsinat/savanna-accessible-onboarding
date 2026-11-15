@@ -1,13 +1,16 @@
 import VoiceInput from '../wizard/VoiceInput';
+import { useI18n } from '../../i18n/I18nContext';
 
 const personalQuestions = {
   fullName: {
     id: 'fullName',
-    label: 'Full name',
+    labelKey: 'wizard.fields.fullName',
+    simpleLabelKey: 'wizard.fields.fullNameSimple',
   },
   phoneOrEmail: {
     id: 'phoneOrEmail',
-    label: 'Phone or email',
+    labelKey: 'wizard.fields.contact',
+    simpleLabelKey: 'wizard.fields.contactSimple',
   },
 };
 
@@ -19,12 +22,14 @@ export default function StepPersonal({
   inputRef,
   onVoiceReviewStateChange
 }) {
+  const { t, simpleWords } = useI18n();
   const question = personalQuestions[field];
 
   return (
     <section>
       <VoiceInput
-        {...question}
+        id={question.id}
+        label={t(simpleWords ? question.simpleLabelKey : question.labelKey)}
         type="text"
         required
         value={formData[field] || ''}

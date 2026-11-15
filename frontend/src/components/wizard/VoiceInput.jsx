@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import TranscriptionReview from './TranscriptionReview';
+import { useI18n } from '../../i18n/I18nContext';
 
 export default function VoiceInput({
   value,
@@ -14,7 +15,6 @@ export default function VoiceInput({
   audioSrc,
   required = false,
 }) {
-  const [selectedLang, setSelectedLang] = useState('en-US');
   const [isListening, setIsListening] = useState(false);
   const [status, setStatus] = useState('');
   const [voiceError, setVoiceError] = useState('');
@@ -25,6 +25,7 @@ export default function VoiceInput({
   const fieldRef = useRef(null);
   const voiceButtonRef = useRef(null);
   const focusAfterReviewRef = useRef(null);
+  const { t, bcp47 } = useI18n();
   const isTextArea = type === 'textarea';
   const SpeechRecognition =
     typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -64,19 +65,19 @@ export default function VoiceInput({
   const getRecognitionErrorMessage = (error) => {
     switch (error) {
       case 'not-allowed':
-        return 'Microphone permission was denied or blocked. Check your browser permissions and try again, or type your answer.';
+        return t('voice.permission');
       case 'service-not-allowed':
-        return 'The speech recognition service is blocked or unavailable. Please try again later, or type your answer.';
+        return t('voice.service');
       case 'network':
-        return 'A network error interrupted speech recognition. Check your connection and try again, or type your answer.';
+        return t('voice.network');
       case 'no-speech':
-        return 'No speech was recognized. Please try again, or type your answer.';
+        return t('voice.noSpeech');
       case 'audio-capture':
-        return 'A microphone could not be accessed. Check your microphone and browser permissions, or type your answer.';
+        return t('voice.audioCapture');
       case 'aborted':
-        return 'Speech recognition was stopped. You can try again or type your answer.';
+        return t('voice.aborted');
       default:
-        return 'Speech recognition failed. Please try again, or type your answer.';
+        return t('voice.failed');
     }
   };
 
@@ -106,13 +107,13 @@ export default function VoiceInput({
     setPendingTranscript('');
 
     if (!isSpeechRecognitionSupported) {
-      setVoiceError('Speech-to-text is not supported in this browser. You can type your answer.');
+      setVoiceError(t('voice.notSupported'));
       return;
     }
 
     try {
       const recognition = new SpeechRecognition();
-      recognition.lang = selectedLang;
+      recognition.lang = bcp47;
       recognition.interimResults = false;
       recognition.continuous = false;
       let receivedResult = false;
@@ -127,7 +128,7 @@ export default function VoiceInput({
           .filter(Boolean)
           .join(' ');
         if (!transcript) {
-          setVoiceError('No speech was recognized. Please try again, or type your answer.');
+          setVoiceError(t('voice.noSpeech'));
           setStatus('');
           return;
         }
@@ -152,10 +153,10 @@ export default function VoiceInput({
           recognitionRef.current = null;
           setIsListening(false);
           if (receivedResult) {
-            setStatus('Speech recognized.');
+            setStatus(t('voice.recognized'));
           } else if (!receivedResultEvent) {
             setStatus('');
-            setVoiceError('No speech was recognized. Please try again, or type your answer.');
+            setVoiceError(t('voice.noSpeech'));
           }
         }
       };
@@ -163,12 +164,12 @@ export default function VoiceInput({
       recognitionRef.current = recognition;
       recognition.start();
       setIsListening(true);
-      setStatus('Listening...');
+      setStatus(t('voice.listening'));
     } catch (error) {
       recognitionRef.current = null;
       setIsListening(false);
       setStatus('');
-      setVoiceError('Could not start speech recognition. Check your microphone permissions and try again, or type your answer.');
+      setVoiceError(t('voice.couldNotStart'));
       console.error('Unable to start speech recognition:', error);
     }
   };
@@ -176,7 +177,7 @@ export default function VoiceInput({
   const stopCapture = () => {
     if (isListening) {
       recognitionRef.current?.stop();
-      setStatus('Stopping speech recognition...');
+      setStatus(t('voice.stopping'));
     }
   };
 
@@ -195,13 +196,13 @@ export default function VoiceInput({
     const currentValue = valueRef.current.trim();
     handleValueChange(currentValue ? `${currentValue} ${transcript}` : transcript);
     setPendingTranscript('');
-    setStatus('Transcription confirmed. You can continue when ready.');
+    setStatus(t('voice.confirmed'));
     closeReview();
   };
 
   const handleContinueManually = () => {
     setPendingTranscript('');
-    setStatus('Continuing with your typed answer. The transcription was not added.');
+    setStatus(t('voice.continuingTyped'));
     closeReview();
   };
 
@@ -245,7 +246,7 @@ export default function VoiceInput({
         <>
           <label htmlFor={id} className="block text-sm font-medium mb-2">
             {label}
-            {required && <span aria-hidden="true"> (required)</span>}
+            {required && <span aria-hidden="true"> {t('common.required')}</span>}
           </label>
           {isTextArea ? <textarea {...sharedProps} rows={3} /> : <input {...sharedProps} type={type} />}
           {error && (
@@ -256,21 +257,6 @@ export default function VoiceInput({
 
           {isSpeechRecognitionSupported ? (
             <div className="mt-3 flex flex-wrap items-end gap-3">
-              <div>
-                <label htmlFor={`${id}-voice-language`} className="block text-sm font-medium mb-1">
-                  Voice input language
-                </label>
-                <select
-                  id={`${id}-voice-language`}
-                  value={selectedLang}
-                  onChange={(event) => setSelectedLang(event.target.value)}
-                  disabled={isListening}
-                  className="bg-gray-950 border border-gray-500 rounded-lg px-3 py-2 text-white"
-                >
-                  <option value="en-US">English</option>
-                  <option value="am-ET">Amharic</option>
-                </select>
-              </div>
               <button
                 ref={voiceButtonRef}
                 type="button"
@@ -278,12 +264,12 @@ export default function VoiceInput({
                 aria-pressed={isListening}
                 className="px-3 py-2 rounded-lg border border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-700"
               >
-                {isListening ? 'Stop listening' : voiceError ? 'Try voice input again' : 'Use voice input'}
+                {isListening ? t('voice.stop') : t('voice.speak')}
               </button>
             </div>
           ) : (
             <p id={voiceErrorId} className="mt-2 text-sm text-gray-300" role="status" aria-live="polite">
-              Speech-to-text is not supported in this browser. You can type your answer.
+              {t('voice.notSupported')}
             </p>
           )}
 

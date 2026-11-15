@@ -5,10 +5,13 @@ import {
   fetchJobApplicants,
   updateApplicationStatus
 } from '../../services/api';
+import { useI18n } from '../../i18n/I18nContext';
+import { formatEthiopianDate } from '../../utils/ethiopia';
 
 const statuses = ['pending', 'reviewed', 'shortlisted', 'rejected'];
 
 export default function EmployerApplications() {
+  const { t, lang } = useI18n();
   const [jobs, setJobs] = useState([]);
   const [selectedJobId, setSelectedJobId] = useState('');
   const [applications, setApplications] = useState([]);
@@ -23,14 +26,14 @@ export default function EmployerApplications() {
         const data = await fetchJobs();
         setJobs(data.jobs || []);
       } catch (err) {
-        setError('Could not load published jobs.');
+        setError(t('employer.loadJobsError'));
       } finally {
         setLoadingJobs(false);
       }
     };
 
     loadJobs();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!selectedJobId) {
@@ -46,14 +49,14 @@ export default function EmployerApplications() {
         const data = await fetchJobApplicants(selectedJobId);
         setApplications(data.applications || []);
       } catch (err) {
-        setError('Could not load applicants for this job.');
+        setError(t('employer.loadApplicantsError'));
       } finally {
         setLoadingApplications(false);
       }
     };
 
     loadApplicants();
-  }, [selectedJobId]);
+  }, [selectedJobId, t]);
 
   const handleStatusChange = async (applicationId, status) => {
     setUpdatingId(applicationId);
@@ -70,7 +73,7 @@ export default function EmployerApplications() {
         )
       );
     } catch (err) {
-      setError('Could not update the application status.');
+      setError(t('employer.statusError'));
     } finally {
       setUpdatingId('');
     }
@@ -80,15 +83,15 @@ export default function EmployerApplications() {
     <section className="mt-12">
       <div className="mb-6">
         <p className="text-sm font-semibold tracking-widest text-blue-400 mb-2">
-          APPLICANT MANAGEMENT
+          {t('employer.management')}
         </p>
 
         <h2 className="text-2xl font-bold text-white">
-          Review applications
+          {t('employer.reviewApplications')}
         </h2>
 
         <p className="text-gray-400 mt-2">
-          Select a published job to view its applicants and their responses.
+          {t('employer.selectJobHelp')}
         </p>
       </div>
 
@@ -97,14 +100,14 @@ export default function EmployerApplications() {
           htmlFor="employer-job-select"
           className="block text-sm font-medium text-gray-300 mb-2"
         >
-          Select a job
+          {t('employer.selectJob')}
         </label>
 
         {loadingJobs ? (
-          <p className="text-gray-400">Loading published jobs...</p>
+          <p className="text-gray-400">{t('employer.loadingJobs')}</p>
         ) : jobs.length === 0 ? (
           <p className="text-gray-400">
-            No published jobs yet. Publish a job to start receiving applications.
+            {t('employer.noJobs')}
           </p>
         ) : (
           <select
@@ -113,7 +116,7 @@ export default function EmployerApplications() {
             onChange={event => setSelectedJobId(event.target.value)}
             className="w-full bg-[#0b0e14] border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Choose a job...</option>
+            <option value="">{t('employer.chooseJob')}</option>
             {jobs.map(job => (
               <option key={job._id} value={job._id}>
                 {job.title} — {job.company}
@@ -132,14 +135,14 @@ export default function EmployerApplications() {
       {selectedJobId && (
         <div className="mt-6">
           <h3 className="text-lg font-semibold text-white mb-4">
-            Applicants ({applications.length})
+            {t('employer.applicants', { count: applications.length })}
           </h3>
 
           {loadingApplications ? (
-            <p className="text-gray-400">Loading applicants...</p>
+            <p className="text-gray-400">{t('employer.loadingApplicants')}</p>
           ) : applications.length === 0 ? (
             <div className="bg-[#151b27] border border-gray-800 rounded-xl p-6 text-gray-400">
-              No applications have been submitted for this job yet.
+              {t('employer.noApplicants')}
             </div>
           ) : (
             <div className="space-y-5">
@@ -155,10 +158,10 @@ export default function EmployerApplications() {
                       </h4>
 
                       <p className="text-sm text-gray-400 mt-1">
-                        Submitted:{' '}
+                        {t('employer.submitted')}{' '}
                         {application.submittedAt
-                          ? new Date(application.submittedAt).toLocaleString()
-                          : 'Date unavailable'}
+                            ? formatEthiopianDate(new Date(application.submittedAt), lang)
+                            : t('employer.dateUnavailable')}
                       </p>
                     </div>
 
@@ -167,7 +170,7 @@ export default function EmployerApplications() {
                         htmlFor={`status-${application._id}`}
                         className="block text-xs text-gray-400 mb-1"
                       >
-                        Application status
+                        {t('employer.applicationStatus')}
                       </label>
 
                       <select
@@ -184,7 +187,7 @@ export default function EmployerApplications() {
                       >
                         {statuses.map(status => (
                           <option key={status} value={status}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                            {t(`employer.status.${status}`)}
                           </option>
                         ))}
                       </select>
@@ -193,7 +196,7 @@ export default function EmployerApplications() {
 
                   <div className="mt-5">
                     <h5 className="text-sm font-semibold text-blue-300 mb-2">
-                      Requested accommodations
+                      {t('employer.requestedAccommodations')}
                     </h5>
 
                     {application.requestedAccommodations?.length > 0 ? (
@@ -209,14 +212,14 @@ export default function EmployerApplications() {
                       </div>
                     ) : (
                       <p className="text-sm text-gray-400">
-                        No accommodations requested.
+                        {t('employer.noAccommodations')}
                       </p>
                     )}
                   </div>
 
                   <div className="mt-5">
                     <h5 className="text-sm font-semibold text-blue-300 mb-3">
-                      Candidate responses
+                      {t('employer.candidateResponses')}
                     </h5>
 
                     {application.voiceAnswers?.length > 0 ? (
@@ -227,7 +230,7 @@ export default function EmployerApplications() {
                             className="bg-[#0b0e14] rounded-lg p-4"
                           >
                             <p className="text-xs text-gray-500 mb-2">
-                              Question {answer.questionId}
+                              {t('employer.question', { id: answer.questionId })}
                             </p>
 
                             <p className="text-sm text-gray-200 leading-relaxed">
@@ -238,7 +241,7 @@ export default function EmployerApplications() {
                       </div>
                     ) : (
                       <p className="text-sm text-gray-400">
-                        No responses available.
+                        {t('employer.noResponses')}
                       </p>
                     )}
                   </div>

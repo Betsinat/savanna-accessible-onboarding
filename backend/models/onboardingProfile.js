@@ -21,9 +21,9 @@ const OnboardingProfileSchema = new mongoose.Schema({
   idRoute: {
     type: String,
     enum: [
-      'standard_id',
+      'national_id',
       'refugee_id',
-      'alternative_doc',
+      'other_document',
       'partner_referral'
     ],
     required: true
@@ -59,22 +59,12 @@ const OnboardingProfileSchema = new mongoose.Schema({
 
 OnboardingProfileSchema.pre('validate', function(next) {
   if (
-    ['refugee_id', 'alternative_doc'].includes(this.idRoute) &&
+    ['national_id', 'refugee_id', 'other_document'].includes(this.idRoute) &&
     !this.idDetails?.documentNumber
   ) {
     this.invalidate(
       'idDetails.documentNumber',
       'Document details are required for this identification route.'
-    );
-  }
-
-  if (
-    this.idRoute === 'partner_referral' &&
-    !this.idDetails?.partnerCode
-  ) {
-    this.invalidate(
-      'idDetails.partnerCode',
-      'Partner referral code is required.'
     );
   }
 

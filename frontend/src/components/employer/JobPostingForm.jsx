@@ -1,23 +1,24 @@
 
 import React, { useRef, useState } from 'react';
 import { createEmployerJob } from '../../services/api';
+import { useI18n } from '../../i18n/I18nContext';
 
 const accommodationOptions = [
   {
     id: 'screen_reader_compatible',
-    label: 'Screen Reader Compatible'
+    labelKey: 'screenReaderCompatible'
   },
   {
     id: 'flexible_hours',
-    label: 'Flexible Working Hours'
+    labelKey: 'flexibleHours'
   },
   {
     id: 'remote_work',
-    label: 'Remote Work Enabled'
+    labelKey: 'remoteWork'
   },
   {
     id: 'captioned_meetings',
-    label: 'Captioned Meetings'
+    labelKey: 'captionedMeetings'
   }
 ];
 
@@ -31,6 +32,7 @@ const initialForm = {
 };
 
 export default function JobPostingForm({ onJobPublished }) {
+  const { t } = useI18n();
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -73,7 +75,7 @@ export default function JobPostingForm({ onJobPublished }) {
     ].find(({ value }) => !value.trim());
 
     if (firstMissingField) {
-      setError('Please complete the job title, company, and description.');
+      setError(t('jobForm.missing'));
       firstMissingField.ref.current?.focus();
       return;
     }
@@ -95,7 +97,7 @@ export default function JobPostingForm({ onJobPublished }) {
 
       const response = await createEmployerJob(payload);
 
-      setSuccess(response.message || 'Job published successfully!');
+      setSuccess(t('jobForm.published'));
       setForm(initialForm);
 
       if (onJobPublished) {
@@ -103,9 +105,7 @@ export default function JobPostingForm({ onJobPublished }) {
       }
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-        err.message ||
-        'Unable to publish the job. Please try again.'
+        t('jobForm.error')
       );
     } finally {
       setLoading(false);
@@ -121,14 +121,13 @@ export default function JobPostingForm({ onJobPublished }) {
     >
       <div>
         <h2 id="job-form-heading" className="text-2xl font-bold text-white">
-          Post a job opportunity
+          {t('jobForm.title')}
         </h2>
         <p id="job-form-help" className="text-gray-400 text-sm mt-2">
-          Share an opportunity and tell candidates which workplace
-          accommodations your company offers.
+          {t('jobForm.help')}
         </p>
         <p className="mt-2 text-sm text-gray-400">
-          Fields marked * are required.
+          {t('jobForm.requiredHelp')}
         </p>
       </div>
 
@@ -138,7 +137,7 @@ export default function JobPostingForm({ onJobPublished }) {
             htmlFor="job-title"
             className="block text-sm font-medium text-gray-200 mb-2"
           >
-            Job title *
+            {t('jobForm.jobTitle')}
           </label>
           <input
             id="job-title"
@@ -151,7 +150,7 @@ export default function JobPostingForm({ onJobPublished }) {
             aria-invalid={Boolean(error && !form.title.trim())}
             aria-describedby={error && !form.title.trim() ? 'job-form-error' : undefined}
             maxLength={150}
-            placeholder="e.g. Junior Software Developer"
+            placeholder={t('jobForm.titlePlaceholder')}
             className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -161,7 +160,7 @@ export default function JobPostingForm({ onJobPublished }) {
             htmlFor="company-name"
             className="block text-sm font-medium text-gray-200 mb-2"
           >
-            Company name *
+            {t('jobForm.company')}
           </label>
           <input
             id="company-name"
@@ -174,7 +173,7 @@ export default function JobPostingForm({ onJobPublished }) {
             aria-invalid={Boolean(error && !form.company.trim())}
             aria-describedby={error && !form.company.trim() ? 'job-form-error' : undefined}
             maxLength={150}
-            placeholder="e.g. Savanna Technologies"
+            placeholder={t('jobForm.companyPlaceholder')}
             className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -185,7 +184,7 @@ export default function JobPostingForm({ onJobPublished }) {
           htmlFor="job-description"
           className="block text-sm font-medium text-gray-200 mb-2"
         >
-          Job description *
+          {t('jobForm.description')}
         </label>
         <textarea
           id="job-description"
@@ -198,7 +197,7 @@ export default function JobPostingForm({ onJobPublished }) {
           aria-describedby={error && !form.description.trim() ? 'job-form-error' : undefined}
           maxLength={5000}
           rows={5}
-          placeholder="Describe the role and its responsibilities..."
+          placeholder={t('jobForm.descriptionPlaceholder')}
           className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
         />
       </div>
@@ -208,7 +207,7 @@ export default function JobPostingForm({ onJobPublished }) {
           htmlFor="job-location"
           className="block text-sm font-medium text-gray-200 mb-2"
         >
-          Location
+          {t('jobForm.location')}
         </label>
         <input
           id="job-location"
@@ -216,7 +215,7 @@ export default function JobPostingForm({ onJobPublished }) {
           type="text"
           value={form.location}
           onChange={handleChange}
-          placeholder="e.g. Addis Ababa or Remote"
+          placeholder={t('jobForm.locationPlaceholder')}
           className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
         />
       </div>
@@ -226,7 +225,7 @@ export default function JobPostingForm({ onJobPublished }) {
           htmlFor="job-requirements"
           className="block text-sm font-medium text-gray-200 mb-2"
         >
-          Requirements
+          {t('jobForm.requirements')}
         </label>
         <textarea
           id="job-requirements"
@@ -234,20 +233,20 @@ export default function JobPostingForm({ onJobPublished }) {
           value={form.requirements}
           onChange={handleChange}
           rows={4}
-          placeholder={'Enter one requirement per line:\nJavaScript\nProblem solving\nCommunication'}
+          placeholder={t('jobForm.requirementsPlaceholder')}
           className="w-full bg-gray-950 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-xs text-gray-400 mt-2">
-          Enter each requirement on a separate line.
+          {t('jobForm.requirementsHelp')}
         </p>
       </div>
 
       <fieldset>
         <legend className="text-sm font-semibold text-white mb-2">
-          Workplace accommodations offered
+          {t('jobForm.offered')}
         </legend>
         <p className="text-sm text-gray-400 mb-4">
-          Select all accommodations available for this position.
+          {t('jobForm.offeredHelp')}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -263,7 +262,7 @@ export default function JobPostingForm({ onJobPublished }) {
                 className="w-4 h-4 accent-blue-500"
               />
               <span className="text-sm text-gray-200">
-                {option.label}
+                {t(`wizard.accommodations.${option.labelKey}`)}
               </span>
             </label>
           ))}
@@ -287,7 +286,7 @@ export default function JobPostingForm({ onJobPublished }) {
         disabled={loading}
         className="w-full sm:w-auto px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-300 disabled:cursor-not-allowed text-white font-semibold transition"
       >
-        {loading ? 'Publishing...' : 'Publish job'}
+        {loading ? t('jobForm.publishing') : t('jobForm.publish')}
       </button>
     </form>
   );

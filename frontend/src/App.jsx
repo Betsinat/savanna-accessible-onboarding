@@ -5,6 +5,7 @@ import AccessibilityToolbar from './components/AccessibilityToolbar';
 import CareerGateway from './components/career/candidates/CareerGateway';
 import EmployerDashboard from './components/employer/EmployerDashboard';
 import Wizard from './components/Wizard';
+import { useI18n } from './i18n/I18nContext';
 
 function createSessionId() {
   const cryptoApi = globalThis.crypto;
@@ -32,9 +33,9 @@ function createSessionId() {
 }
 
 const navigationItems = [
-  { id: 'learner', label: 'Learner Onboarding' },
-  { id: 'jobs', label: 'Job Board & Apply' },
-  { id: 'employer', label: 'Employer View (Demo)' }
+  { id: 'learner', label: 'app.learner' },
+  { id: 'jobs', label: 'app.jobs' },
+  { id: 'employer', label: 'app.employer' }
 ];
 
 function getAccessibilityTestModeFromUrl() {
@@ -43,6 +44,7 @@ function getAccessibilityTestModeFromUrl() {
 }
 
 export default function App() {
+  const { t } = useI18n();
   const [activeView, setActiveView] = useState('learner');
   const [isAccessibilityTestMode, setIsAccessibilityTestMode] = useState(
     getAccessibilityTestModeFromUrl
@@ -128,12 +130,12 @@ export default function App() {
                 SAVANNA
               </p>
               <p className="text-xs text-gray-400">
-                Accessible Opportunities for Everyone
+                {t('app.tagline')}
               </p>
             </div>
 
             <nav
-              aria-label="Main navigation"
+              aria-label={t('app.mainNavigation')}
               className="flex flex-wrap gap-2"
             >
               {navigationItems.map((item) => (
@@ -150,7 +152,7 @@ export default function App() {
                       : 'border border-gray-500 bg-gray-900 text-gray-300 hover:bg-gray-800'
                   }`}
                 >
-                  {item.label}
+                  {t(item.label)}
                 </button>
               ))}
               {import.meta.env.DEV && (
@@ -165,8 +167,8 @@ export default function App() {
                   }`}
                 >
                   {isAccessibilityTestMode
-                    ? 'Exit accessibility test mode'
-                    : 'Accessibility test mode'}
+                    ? t('app.exitTestMode')
+                    : t('app.testMode')}
                 </button>
               )}
             </nav>
@@ -193,13 +195,11 @@ export default function App() {
                 </div>
 
                 <h1 className="text-3xl font-bold">
-                  Your onboarding is complete!
+                  {t('app.completeTitle')}
                 </h1>
 
                 <p className="text-gray-400 mt-4 leading-relaxed">
-                  Your profile has been saved. You can explore
-                  opportunities that match your accommodation
-                  preferences in the Job Board.
+                  {t('app.completeMessage')}
                 </p>
 
                 <button
@@ -207,7 +207,7 @@ export default function App() {
                   onClick={() => setActiveView('jobs')}
                   className="mt-7 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold transition"
                 >
-                  Explore opportunities
+                  {t('app.explore')}
                 </button>
               </div>
             </section>
