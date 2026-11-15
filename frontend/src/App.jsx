@@ -118,7 +118,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#111318] text-white">
+    <div className="app-shell min-h-screen bg-[#111318] text-white">
       <AccessibilityToolbar />
 
       <header className="sticky top-0 z-40 bg-[#111318]/95 backdrop-blur border-b border-gray-800">

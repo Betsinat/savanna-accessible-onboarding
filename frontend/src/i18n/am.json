@@ -20,8 +20,19 @@
     "title": "የተደራሽነት መሣሪያዎች",
     "language": "ቋንቋ",
     "contrast": "ንፅፅር",
+    "contrastOptions": {
+      "standard": "መደበኛ ንፅፅር",
+      "high": "ከፍተኛ ንፅፅር"
+    },
     "contrastOn": "ከፍተኛ ንፅፅር በርቷል",
     "largerText": "ትልቅ ጽሑፍ",
+    "textSize": "የጽሑፍ መጠን",
+    "textSizeOptions": {
+      "normal": "መደበኛ",
+      "medium": "መካከለኛ",
+      "large": "ትልቅ",
+      "extraLarge": "በጣም ትልቅ"
+    },
     "simpleWords": "ቀላል ቃላት",
     "simpleWordsOn": "ቀላል ቃላት በርተዋል",
     "screenHelp": "የማያ አንባቢ እገዛ",
@@ -37,7 +48,6 @@
   },
   "wizard": {
     "title": "የሳቫና ምዝገባ",
-    "session": "የክፍለ ጊዜ መለያ፦ {{id}}",
     "listen": "አዳምጥ",
     "stopSpeaking": "ንግግሩን አቁም",
     "progress": "ጥያቄ {{step}} ከ {{total}}",
@@ -49,8 +59,6 @@
     "testComplete": "የተደራሽነት ሙከራ ተጠናቋል። ምንም ማመልከቻ አልተቀመጠም ወይም አልተላከም።",
     "saveSyncing": "በማመሳሰል ላይ...",
     "saveComplete": "እድገት ተቀምጧል",
-    "saveOffline": "በዚህ ስልክ ተቀምጧል። ኢንተርኔት ሲኖር ይላካል።",
-    "footer": "ኢንተርኔት ባይኖርም እድገት ይቀመጣል",
     "submitError": "ምዝገባውን ማጠናቀቅ አልተቻለም። ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።",
     "speechReading": "ጥያቄውን በማንበብ ላይ።",
     "speechDone": "ጥያቄው ተነቧል።",

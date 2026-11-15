@@ -20,8 +20,19 @@
     "title": "Geytimtaanam qalitte",
     "language": "Qafar af",
     "contrast": "Fakim",
+    "contrastOptions": {
+      "standard": "Taqabi fakim",
+      "high": "Caddo fakim"
+    },
     "contrastOn": "Caddo fakim ayroole",
     "largerText": "Caddo qangara",
+    "textSize": "Qangara caddo",
+    "textSizeOptions": {
+      "normal": "Taqabi",
+      "medium": "Giddigdu",
+      "large": "Caddo",
+      "extraLarge": "Qasri caddo"
+    },
     "simpleWords": "Qunxaaney qangara",
     "simpleWordsOn": "Qunxaaney qangara ayroole",
     "screenHelp": "Screen akahrih caagid",
@@ -37,7 +48,6 @@
   },
   "wizard": {
     "title": "Savanna galma",
-    "session": "Xilli num: {{id}}",
     "listen": "Tahaar",
     "stopSpeaking": "Qangara jooji",
     "progress": "Gaaboysa {{step}} / {{total}}",
@@ -49,8 +59,6 @@
     "testComplete": "Geytimtaanam tijaabo xummurte. Taama ma kuusimta hinnay ma rubta.",
     "saveSyncing": "Iswaafajina...",
     "saveComplete": "Gexsit kuusime",
-    "saveOffline": "Tama telefona kuusime. Internet geytimta waqdi rubtam.",
-    "footer": "Internet akah geytimtaanam gexsit kuusimta",
     "submitError": "Galma xummuruk ma duuda. Xiriir kee wagit, kalah tijaabi.",
     "speechReading": "Gaaboysa akahriya.",
     "speechDone": "Akahri xummurte.",

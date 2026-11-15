@@ -20,8 +20,19 @@
     "title": "Accessibility tools",
     "language": "Language",
     "contrast": "Contrast",
+    "contrastOptions": {
+      "standard": "Standard contrast",
+      "high": "High contrast"
+    },
     "contrastOn": "High contrast on",
     "largerText": "Larger text",
+    "textSize": "Text size",
+    "textSizeOptions": {
+      "normal": "Normal",
+      "medium": "Medium",
+      "large": "Large",
+      "extraLarge": "Extra Large"
+    },
     "simpleWords": "Simple words",
     "simpleWordsOn": "Simple words on",
     "screenHelp": "Screen reader help",
@@ -37,7 +48,6 @@
   },
   "wizard": {
     "title": "Savanna onboarding",
-    "session": "Session ID: {{id}}",
     "listen": "Listen",
     "stopSpeaking": "Stop speaking",
     "progress": "Question {{step}} of {{total}}",
@@ -49,8 +59,6 @@
     "testComplete": "Accessibility test complete. No application was saved or submitted.",
     "saveSyncing": "Syncing...",
     "saveComplete": "Progress saved",
-    "saveOffline": "Saved on this phone. It will send when you are online.",
-    "footer": "Offline-first progress saving",
     "submitError": "Registration could not be completed. Check your connection and try again.",
     "speechReading": "Reading the question.",
     "speechDone": "Read-aloud finished.",

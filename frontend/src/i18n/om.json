@@ -20,8 +20,19 @@
     "title": "Meeshaalee dhaqqabummaa",
     "language": "Afaan",
     "contrast": "Faallaa halluu",
+    "contrastOptions": {
+      "standard": "Faallaa idilee",
+      "high": "Faallaa olaanaa"
+    },
     "contrastOn": "Faallaan ol'aanaan banameera",
     "largerText": "Barreeffama guddaa",
+    "textSize": "Hammamtaa barruu",
+    "textSizeOptions": {
+      "normal": "Idilee",
+      "medium": "Giddugaleessa",
+      "large": "Guddaa",
+      "extraLarge": "Baay'ee guddaa"
+    },
     "simpleWords": "Jechoota salphaa",
     "simpleWordsOn": "Jechoonni salphaan banamaniiru",
     "screenHelp": "Gargaarsa dubbisaa iskiriinii",
@@ -37,7 +48,6 @@
   },
   "wizard": {
     "title": "Galmee Savanna",
-    "session": "Lakkoofsa yeroo: {{id}}",
     "listen": "Dhaggeeffadhu",
     "stopSpeaking": "Dubbii dhaabi",
     "progress": "Gaaffii {{step}} keessaa {{total}}",
@@ -49,8 +59,6 @@
     "testComplete": "Yaaliin dhaqqabummaa xumurameera. Iyyatni hin kuufamne yookaan hin ergamne.",
     "saveSyncing": "Walsimsiisaa jira...",
     "saveComplete": "Adeemsi kuufameera",
-    "saveOffline": "Bilbila kana irratti kuufameera. Yeroo intarneetiin jiraatu ni ergama.",
-    "footer": "Adeemsi intarneetii malee ni kuufama",
     "submitError": "Galmee xumuruun hin danda'amne. Walqunnamtii kee mirkaneeffadhuutii irra deebi'i.",
     "speechReading": "Gaaffii dubbisaa jira.",
     "speechDone": "Dubbisuun xumurameera.",

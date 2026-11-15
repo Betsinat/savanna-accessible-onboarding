@@ -20,8 +20,19 @@
     "title": "መሳርሒታት ተበጻሕነት",
     "language": "ቋንቋ",
     "contrast": "ንጽጽር",
+    "contrastOptions": {
+      "standard": "ልሙድ ንጽጽር",
+      "high": "ልዑል ንጽጽር"
+    },
     "contrastOn": "ልዑል ንጽጽር ተኸፊቱ",
     "largerText": "ዓቢ ጽሑፍ",
+    "textSize": "ዓቐን ጽሑፍ",
+    "textSizeOptions": {
+      "normal": "ልሙድ",
+      "medium": "ማእከላይ",
+      "large": "ዓቢ",
+      "extraLarge": "ኣዝዩ ዓቢ"
+    },
     "simpleWords": "ቀለልቲ ቃላት",
     "simpleWordsOn": "ቀለልቲ ቃላት ተኸፊቶም",
     "screenHelp": "ሓገዝ ኣንባቢ ስክሪን",
@@ -37,7 +48,6 @@
   },
   "wizard": {
     "title": "ምዝገባ ሳቫና",
-    "session": "መለለዪ ክፍለ ግዜ፦ {{id}}",
     "listen": "ስማዕ",
     "stopSpeaking": "ድምጺ ኣቋርጽ",
     "progress": "ሕቶ {{step}} ካብ {{total}}",
@@ -49,8 +59,6 @@
     "testComplete": "ፈተና ተበጻሕነት ተዛዚሙ። ማመልከቻ ኣይተቐመጠን ወይ ኣይተላእከን።",
     "saveSyncing": "ይሰማማዕ ኣሎ...",
     "saveComplete": "ምዕባለ ተቐሚጡ",
-    "saveOffline": "ኣብዚ ተሌፎን ተቐሚጡ። ኢንተርነት ምስ ዝህሉ ክልኣኽ እዩ።",
-    "footer": "ብዘይ ኢንተርነት ምዕባለ ይቕመጥ",
     "submitError": "ምዝገባ ምዝዛም ኣይተኻእለን። ግንኙነትካ ፈትሽካ እንደገና ፈትን።",
     "speechReading": "እቲ ሕቶ ይንበብ ኣሎ።",
     "speechDone": "ምንባብ ተዛዚሙ።",
