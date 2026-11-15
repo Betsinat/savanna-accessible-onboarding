@@ -48,7 +48,6 @@
   },
   "wizard": {
     "title": "Savanna galma",
-    "session": "Xilli num: {{id}}",
     "listen": "Tahaar",
     "stopSpeaking": "Qangara jooji",
     "progress": "Gaaboysa {{step}} / {{total}}",
@@ -60,8 +59,6 @@
     "testComplete": "Geytimtaanam tijaabo xummurte. Taama ma kuusimta hinnay ma rubta.",
     "saveSyncing": "Iswaafajina...",
     "saveComplete": "Gexsit kuusime",
-    "saveOffline": "Tama telefona kuusime. Internet geytimta waqdi rubtam.",
-    "footer": "Internet akah geytimtaanam gexsit kuusimta",
     "submitError": "Galma xummuruk ma duuda. Xiriir kee wagit, kalah tijaabi.",
     "speechReading": "Gaaboysa akahriya.",
     "speechDone": "Akahri xummurte.",

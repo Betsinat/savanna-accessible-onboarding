@@ -48,7 +48,6 @@
   },
   "wizard": {
     "title": "ምዝገባ ሳቫና",
-    "session": "መለለዪ ክፍለ ግዜ፦ {{id}}",
     "listen": "ስማዕ",
     "stopSpeaking": "ድምጺ ኣቋርጽ",
     "progress": "ሕቶ {{step}} ካብ {{total}}",
@@ -60,8 +59,6 @@
     "testComplete": "ፈተና ተበጻሕነት ተዛዚሙ። ማመልከቻ ኣይተቐመጠን ወይ ኣይተላእከን።",
     "saveSyncing": "ይሰማማዕ ኣሎ...",
     "saveComplete": "ምዕባለ ተቐሚጡ",
-    "saveOffline": "ኣብዚ ተሌፎን ተቐሚጡ። ኢንተርነት ምስ ዝህሉ ክልኣኽ እዩ።",
-    "footer": "ብዘይ ኢንተርነት ምዕባለ ይቕመጥ",
     "submitError": "ምዝገባ ምዝዛም ኣይተኻእለን። ግንኙነትካ ፈትሽካ እንደገና ፈትን።",
     "speechReading": "እቲ ሕቶ ይንበብ ኣሎ።",
     "speechDone": "ምንባብ ተዛዚሙ።",

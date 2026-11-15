@@ -186,7 +186,7 @@ export default function Wizard({
         });
         setSaveStatus(t('wizard.saveComplete'));
       } catch (err) {
-        setSaveStatus(t('wizard.saveOffline'));
+        setSaveStatus('');
       } finally {
         setIsSaving(false);
       }
@@ -325,9 +325,6 @@ export default function Wizard({
               {t('wizard.title')}
             </p>
           </div>
-          <p className="text-xs text-gray-400 font-mono mt-0.5">
-            {t('wizard.session', { id: sessionId })}
-          </p>
         </div>
         <div className="text-end">
           <div className="flex justify-end gap-2 mb-2">
@@ -349,9 +346,11 @@ export default function Wizard({
           <p aria-live="polite" aria-atomic="true" className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-gray-900 border border-gray-800 text-gray-300">
             {t('wizard.progress', { step: currentQuestionIndex + 1, total: questions.length })}
           </p>
-          <p className="text-xs text-emerald-400 mt-1.5 font-medium" role="status">
-            {isSaving ? t('wizard.saveSyncing') : saveStatus}
-          </p>
+          {(isSaving || saveStatus !== '') && (
+            <p className="text-xs text-emerald-400 mt-1.5 font-medium" role="status">
+              {isSaving ? t('wizard.saveSyncing') : saveStatus}
+            </p>
+          )}
           {speechStatus && (
             <p className="text-xs text-gray-300 mt-1.5" role="status" aria-live="polite">
               {speechStatus}
@@ -417,13 +416,6 @@ export default function Wizard({
           </div>
         </div>
       </section>
-
-      <footer className="w-full max-w-3xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-2 border-t border-gray-800/60 text-xs text-gray-400">
-        <div className="flex items-center gap-1.5 text-emerald-400/90">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
-          {t('wizard.footer')}
-        </div>
-      </footer>
     </div>
   );
 }

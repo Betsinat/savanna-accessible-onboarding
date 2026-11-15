@@ -48,7 +48,6 @@
   },
   "wizard": {
     "title": "Diiwaangelinta Savanna",
-    "session": "Aqoonsiga fadhiga: {{id}}",
     "listen": "Dhagayso",
     "stopSpeaking": "Jooji hadalka",
     "progress": "Su'aasha {{step}} ee {{total}}",
@@ -60,8 +59,6 @@
     "testComplete": "Tijaabada helitaanku way dhammaatay. Codsi lama kaydin mana la dirin.",
     "saveSyncing": "Waa la isku waafajinayaa...",
     "saveComplete": "Horumarka waa la kaydiyey",
-    "saveOffline": "Telefoonkan ayaa lagu kaydiyey. Waa la diri doonaa marka internetku kuu jiro.",
-    "footer": "Horumarka waa la kaydiyaa xitaa internet la'aan",
     "submitError": "Diiwaangelinta lama dhammaystiri karin. Hubi xiriirkaaga oo mar kale isku day.",
     "speechReading": "Su'aasha ayaa la akhrinayaa.",
     "speechDone": "Akhrintu way dhammaatay.",
