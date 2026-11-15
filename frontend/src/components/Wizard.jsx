@@ -317,7 +317,7 @@ export default function Wizard({
         />
       </div>
 
-      <header className="w-full max-w-3xl mx-auto px-6 pt-8 pb-4 flex justify-between items-center border-b border-gray-800/60">
+      <header className="w-full max-w-3xl mx-auto px-6 pt-8 pb-4 flex flex-col gap-4 md:flex-row md:justify-between md:items-center border-b border-gray-800/60">
         <div>
           <div className="flex items-center gap-2">
             <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" aria-hidden="true" />
@@ -326,26 +326,26 @@ export default function Wizard({
             </p>
           </div>
         </div>
-        <div className="text-end">
-          <div className="flex justify-end gap-2 mb-2">
+        <div className="text-end md:w-[30rem]">
+          <div className="mb-3 grid w-full grid-cols-2 gap-3 sm:grid-cols-3">
             <button
               type="button"
               onClick={handleReadQuestion}
-              className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-500 bg-gray-800 text-gray-300 hover:bg-gray-700"
+              className="flex min-h-12 min-w-0 w-full items-center justify-center whitespace-nowrap rounded-xl border border-blue-400 bg-blue-700 px-2 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-600 active:bg-blue-800"
             >
               {t('wizard.listen')}
             </button>
             <button
               type="button"
               onClick={handleStopSpeech}
-              className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-500 bg-gray-800 text-gray-300 hover:bg-gray-700"
+              className="flex min-h-12 min-w-0 w-full items-center justify-center whitespace-nowrap rounded-xl border border-gray-400 bg-gray-700 px-2 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-600 active:bg-gray-800"
             >
               {t('wizard.stopSpeaking')}
             </button>
+            <p aria-live="polite" aria-atomic="true" className="col-span-2 inline-flex min-h-12 w-full items-center justify-center rounded-full border border-gray-700 bg-gray-900 px-3 py-3 text-sm font-semibold tracking-wide text-white sm:col-span-1 md:px-2 md:py-2 md:text-xs">
+              {t('wizard.progress', { step: currentQuestionIndex + 1, total: questions.length })}
+            </p>
           </div>
-          <p aria-live="polite" aria-atomic="true" className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-gray-900 border border-gray-800 text-gray-300">
-            {t('wizard.progress', { step: currentQuestionIndex + 1, total: questions.length })}
-          </p>
           {(isSaving || saveStatus !== '') && (
             <p className="text-xs text-emerald-400 mt-1.5 font-medium" role="status">
               {isSaving ? t('wizard.saveSyncing') : saveStatus}
