@@ -2,10 +2,7 @@
 import React, { useState } from 'react';
 import { usePersistentState } from './hooks/userPersistentState';
 import AccessibilityToolbar from './components/AccessibilityToolbar';
-import CareerGateway from './components/career/candidates/CareerGateway';
-import EmployerDashboard from './components/employer/EmployerDashboard';
-import Wizard from './components/Wizard';
-
+import Track1Module from './components/Track1Module';
 function createSessionId() {
   const cryptoApi = globalThis.crypto;
 
@@ -174,65 +171,19 @@ export default function App() {
         </div>
       </header>
 
-      <main>
-        {activeView === 'learner' && (
-          isAccessibilityTestMode ? (
-            <Wizard
-              key="accessibility-test"
-              formData={testFormData}
-              updateFormData={updateTestFormData}
-              onSuccess={handleWizardSuccess}
-              sessionId={testSessionId}
-              isAccessibilityTestMode
-            />
-          ) : isRegistered ? (
-            <section className="min-h-[60vh] flex items-center justify-center px-6 py-16">
-              <div className="max-w-xl text-center">
-                <div className="text-4xl mb-5" aria-hidden="true">
-                  ✓
-                </div>
-
-                <h1 className="text-3xl font-bold">
-                  Your onboarding is complete!
-                </h1>
-
-                <p className="text-gray-400 mt-4 leading-relaxed">
-                  Your profile has been saved. You can explore
-                  opportunities that match your accommodation
-                  preferences in the Job Board.
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveView('jobs')}
-                  className="mt-7 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold transition"
-                >
-                  Explore opportunities
-                </button>
-              </div>
-            </section>
-          ) : (
-            <Wizard
-              key="normal"
-              formData={formData}
-              updateFormData={updateFormData}
-              onSuccess={handleWizardSuccess}
-              sessionId={sessionId}
-            />
-          )
-        )}
-
-        {activeView === 'jobs' && (
-          <CareerGateway
-            formData={formData}
-            sessionId={isRegistered ? sessionId : undefined}
-          />
-        )}
-
-        {activeView === 'employer' && (
-          <EmployerDashboard />
-        )}
-      </main>
+      <Track1Module
+  activeView={activeView}
+  isAccessibilityTestMode={isAccessibilityTestMode}
+  testFormData={testFormData}
+  updateTestFormData={updateTestFormData}
+  testSessionId={testSessionId}
+  isRegistered={isRegistered}
+  formData={formData}
+  updateFormData={updateFormData}
+  sessionId={sessionId}
+  onWizardSuccess={handleWizardSuccess}
+  onNavigate={setActiveView}
+/>
     </div>
   );
 }

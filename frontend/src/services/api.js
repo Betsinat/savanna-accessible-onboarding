@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 
 const API = axios.create({
@@ -6,6 +7,10 @@ const API = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+export const configureApi = (baseURL = '/api') => {
+  API.defaults.baseURL = baseURL.replace(/\/+$/, '');
+};
 
 export const saveOnboardingDraft = async (payload) => {
   const response = await API.post('/onboarding/save', payload);
@@ -27,21 +32,21 @@ export const submitSupportRequest = async (payload) => {
   return response.data;
 };
 
-
 export const fetchJobs = async (params = {}) => {
   const response = await API.get('/jobs', { params });
   return response.data;
 };
 
-
 export const applyToJob = async (payload) => {
   const response = await API.post('/jobs/apply', payload);
   return response.data;
 };
+
 export const createEmployerJob = async (payload) => {
   const response = await API.post('/employer/jobs', payload);
   return response.data;
 };
+
 export const fetchJobApplicants = async (jobId) => {
   const response = await API.get(
     `/employer/jobs/${jobId}/applications`
