@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 export default function AccessibilityToolbar() {
@@ -5,16 +6,22 @@ export default function AccessibilityToolbar() {
   const [largeText, setLargeText] = useState(false);
   const [showScreenReaderHelp, setShowScreenReaderHelp] = useState(false);
 
-  // Apply high contrast class to root document element
   useEffect(() => {
     if (highContrast) {
-      document.documentElement.classList.add('contrast-more', 'invert', 'hue-rotate-180');
+      document.documentElement.classList.add(
+        'contrast-more',
+        'invert',
+        'hue-rotate-180'
+      );
     } else {
-      document.documentElement.classList.remove('contrast-more', 'invert', 'hue-rotate-180');
+      document.documentElement.classList.remove(
+        'contrast-more',
+        'invert',
+        'hue-rotate-180'
+      );
     }
   }, [highContrast]);
 
-  // Apply large text class to root
   useEffect(() => {
     if (largeText) {
       document.documentElement.classList.add('text-lg');
@@ -24,53 +31,97 @@ export default function AccessibilityToolbar() {
   }, [largeText]);
 
   return (
-    <aside 
-      aria-label="Accessibility Toolbar" 
-      className="fixed bottom-6 right-6 z-50 bg-gray-900/95 backdrop-blur-md border border-gray-700 p-3 rounded-2xl shadow-2xl flex items-center gap-2 text-white"
+    <aside
+      aria-label="Accessibility tools"
+      className="fixed bottom-6 right-6 z-50 bg-gray-900/95 backdrop-blur-md border border-gray-700 p-3 rounded-2xl shadow-2xl flex flex-col gap-3 text-white"
     >
-      <span className="text-xs font-semibold px-2 text-blue-400 uppercase tracking-wider">A11y Tools</span>
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs font-semibold px-2 text-blue-400 uppercase tracking-wider">
+          A11y Tools
+        </span>
 
-      {/* High Contrast Toggle */}
-      <button
-        type="button"
-        onClick={() => setHighContrast(!highContrast)}
-        className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-          highContrast ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-        }`}
-        aria-pressed={highContrast}
-      >
-        {highContrast ? 'High Contrast ON' : 'Contrast'}
-      </button>
+        <button
+          type="button"
+          onClick={() => setHighContrast((value) => !value)}
+          className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+            highContrast
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+          }`}
+          aria-pressed={highContrast}
+        >
+          {highContrast ? 'High Contrast ON' : 'Contrast'}
+        </button>
 
-      {/* Font Size Toggle */}
-      <button
-        type="button"
-        onClick={() => setLargeText(!largeText)}
-        className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-          largeText ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-        }`}
-        aria-pressed={largeText}
-      >
-        Larger text
-      </button>
+        <button
+          type="button"
+          onClick={() => setLargeText((value) => !value)}
+          className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+            largeText
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+          }`}
+          aria-pressed={largeText}
+        >
+          Larger text
+        </button>
 
-      {/* Screen Reader Helper Status */}
-      <button
-        type="button"
-        onClick={() => setShowScreenReaderHelp((shown) => !shown)}
-        className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-          showScreenReaderHelp ? 'bg-emerald-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-        }`}
-        aria-expanded={showScreenReaderHelp}
-        aria-controls="screen-reader-help"
-      >
-        Screen reader help
-      </button>
-      <p id="screen-reader-help" className="sr-only" role="status" aria-live="polite">
-        {showScreenReaderHelp
-          ? 'Form errors, voice input status, and question changes are announced as you use the application.'
-          : ''}
-      </p>
+        <button
+          type="button"
+          onClick={() => setShowScreenReaderHelp((value) => !value)}
+          className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+            showScreenReaderHelp
+              ? 'bg-emerald-600 text-white'
+              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+          }`}
+          aria-expanded={showScreenReaderHelp}
+          aria-controls="screen-reader-help"
+        >
+          {showScreenReaderHelp ? 'Hide help' : 'Screen reader help'}
+        </button>
+      </div>
+
+      {showScreenReaderHelp && (
+        <section
+          id="screen-reader-help"
+          role="region"
+          aria-labelledby="screen-reader-help-title"
+          className="max-w-sm border-t border-gray-700 pt-3 text-sm text-gray-200"
+        >
+          <h2
+            id="screen-reader-help-title"
+            className="font-semibold text-white mb-2"
+          >
+            Keyboard & Screen Reader Quick Guide
+          </h2>
+
+          <ul className="space-y-2">
+            <li>
+              <strong>Tab:</strong> Move to the next interactive control.
+            </li>
+            <li>
+              <strong>Shift + Tab:</strong> Move to the previous control.
+            </li>
+            <li>
+              <strong>Arrow keys:</strong> Move between options in a radio group.
+            </li>
+            <li>
+              <strong>Space:</strong> Select a checkbox or radio option.
+            </li>
+            <li>
+              <strong>Enter or Space:</strong> Activate a button.
+            </li>
+            <li>
+              <strong>Read this question:</strong> Select the read-aloud button to hear the current question.
+            </li>
+          </ul>
+
+          <p className="mt-3 text-xs text-gray-400">
+            You can also use an installed screen reader such as NVDA or
+            TalkBack. Screen reader navigation shortcuts may vary.
+          </p>
+        </section>
+      )}
     </aside>
   );
 }
