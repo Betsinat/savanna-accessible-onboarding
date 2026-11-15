@@ -29,9 +29,9 @@ function createSessionId() {
 }
 
 const navigationItems = [
-  { id: 'learner', label: 'Learner Onboarding' },
-  { id: 'jobs', label: 'Job Board & Apply' },
-  { id: 'employer', label: 'Employer View (Demo)' }
+  { id: 'learner', label: 'app.learner' },
+  { id: 'jobs', label: 'app.jobs' },
+  { id: 'employer', label: 'app.employer' }
 ];
 
 function getAccessibilityTestModeFromUrl() {
@@ -40,6 +40,7 @@ function getAccessibilityTestModeFromUrl() {
 }
 
 export default function App() {
+  const { t } = useI18n();
   const [activeView, setActiveView] = useState('learner');
   const [isAccessibilityTestMode, setIsAccessibilityTestMode] = useState(
     getAccessibilityTestModeFromUrl
@@ -125,12 +126,12 @@ export default function App() {
                 SAVANNA
               </p>
               <p className="text-xs text-gray-400">
-                Accessible Opportunities for Everyone
+                {t('app.tagline')}
               </p>
             </div>
 
             <nav
-              aria-label="Main navigation"
+              aria-label={t('app.mainNavigation')}
               className="flex flex-wrap gap-2"
             >
               {navigationItems.map((item) => (
@@ -147,7 +148,7 @@ export default function App() {
                       : 'border border-gray-500 bg-gray-900 text-gray-300 hover:bg-gray-800'
                   }`}
                 >
-                  {item.label}
+                  {t(item.label)}
                 </button>
               ))}
               {import.meta.env.DEV && (
@@ -162,8 +163,8 @@ export default function App() {
                   }`}
                 >
                   {isAccessibilityTestMode
-                    ? 'Exit accessibility test mode'
-                    : 'Accessibility test mode'}
+                    ? t('app.exitTestMode')
+                    : t('app.testMode')}
                 </button>
               )}
             </nav>

@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-
-const accommodationLabels = {
-  screen_reader_compatible: 'Screen reader compatible',
-  flexible_hours: 'Flexible working hours',
-  remote_work: 'Remote work',
-  captioned_meetings: 'Captioned meetings'
-};
+import { useI18n } from '../../../i18n/I18nContext';
+import { getAccommodationLabelKey } from '../../steps/accommodations';
 
 export default function JobCard({ job, onViewDetails }) {
+  const { t } = useI18n();
   const [showDetails, setShowDetails] = useState(false);
 
   const accommodations = job.offeredAccommodations || [];
@@ -27,7 +23,7 @@ export default function JobCard({ job, onViewDetails }) {
         </div>
 
         <span className="text-xs font-semibold text-emerald-300 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1.5 rounded-full whitespace-nowrap">
-          Active
+          {t('jobs.active')}
         </span>
       </div>
 
@@ -38,17 +34,20 @@ export default function JobCard({ job, onViewDetails }) {
       {accommodations.length > 0 && (
         <section className="mt-6">
           <h3 className="text-sm font-semibold text-gray-200 mb-3">
-            Workplace accommodations
+            {t('jobs.accommodations')}
           </h3>
           <div className="flex flex-wrap gap-2">
-            {accommodations.map((item) => (
-              <span
-                key={item}
-                className="text-xs bg-emerald-400/10 border border-emerald-400/20 text-emerald-200 px-3 py-2 rounded-lg"
-              >
-                {accommodationLabels[item] || item.replaceAll('_', ' ')}
-              </span>
-            ))}
+            {accommodations.map((item) => {
+              const labelKey = getAccommodationLabelKey(item);
+              return (
+                <span
+                  key={item}
+                  className="text-xs bg-emerald-400/10 border border-emerald-400/20 text-emerald-200 px-3 py-2 rounded-lg"
+                >
+                  {labelKey ? t(`wizard.accommodations.${labelKey}`) : item}
+                </span>
+              );
+            })}
           </div>
         </section>
       )}
@@ -61,8 +60,8 @@ export default function JobCard({ job, onViewDetails }) {
             aria-expanded={showDetails}
             className="text-sm font-semibold text-blue-300 hover:text-blue-200 transition-colors"
           >
-            {showDetails ? 'Hide requirements' : 'View requirements'}
-            <span aria-hidden="true" className="ml-2">
+            {showDetails ? t('jobs.hideRequirements') : t('jobs.viewRequirements')}
+            <span aria-hidden="true" className="ms-2">
               {showDetails ? '−' : '+'}
             </span>
           </button>
@@ -83,7 +82,7 @@ export default function JobCard({ job, onViewDetails }) {
           onClick={() => onViewDetails?.(job)}
           className="w-full sm:w-auto px-5 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold transition"
         >
-          View job details
+          {t('jobs.details')}
         </button>
       </div>
     </article>

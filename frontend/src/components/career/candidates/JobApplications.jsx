@@ -2,28 +2,13 @@
 import React, { useState } from 'react';
 import VoiceInput from '../../wizard/VoiceInput';
 import { submitJobApplication } from '../../../services/careerService';
+import { useI18n } from '../../../i18n/I18nContext';
 
 const APPLICATION_QUESTIONS = [
-  {
-    id: 'motivation',
-    label: 'Why are you interested in this position?',
-    placeholder: 'Tell the employer what interests you about this opportunity...'
-  },
-  {
-    id: 'experience',
-    label: 'What skills or experience make you a good fit?',
-    placeholder: 'Describe your relevant skills, education, or experience...'
-  },
-  {
-    id: 'strengths',
-    label: 'What strengths would you bring to this role?',
-    placeholder: 'Share the qualities and abilities you would bring...'
-  },
-  {
-    id: 'problem_solving',
-    label: 'Tell us about a challenge you have faced and how you handled it.',
-    placeholder: 'Describe the challenge and the steps you took...'
-  }
+  { id: 'motivation', labelKey: 'motivation', placeholderKey: 'motivationPlaceholder' },
+  { id: 'experience', labelKey: 'experience', placeholderKey: 'experiencePlaceholder' },
+  { id: 'strengths', labelKey: 'strengths', placeholderKey: 'strengthsPlaceholder' },
+  { id: 'problem_solving', labelKey: 'challenge', placeholderKey: 'challengePlaceholder' },
 ];
 
 export default function JobApplications({
@@ -34,6 +19,7 @@ export default function JobApplications({
   onCancel,
   onSubmitted
 }) {
+  const { t } = useI18n();
   const [answers, setAnswers] = useState({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isReviewing, setIsReviewing] = useState(false);
@@ -54,7 +40,7 @@ export default function JobApplications({
 
   const handleNext = () => {
     if (!currentAnswer.trim()) {
-      setError('Please answer this question before continuing.');
+      setError(t('application.required'));
       return;
     }
 
@@ -98,7 +84,7 @@ export default function JobApplications({
     if (isSubmitting) return;
 
     if (!sessionId || !job?._id || !candidateName?.trim()) {
-      setError('Your candidate information is incomplete. Please check your registration and try again.');
+      setError(t('application.incomplete'));
       return;
     }
 
@@ -107,7 +93,7 @@ export default function JobApplications({
     );
 
     if (unanswered) {
-      setError(`Please answer: ${unanswered.label}`);
+      setError(t('application.answerThis', { question: t(`application.${unanswered.labelKey}`) }));
       setIsReviewing(false);
       setIsEditingAnswer(false);
       setCurrentQuestion(
@@ -137,9 +123,7 @@ export default function JobApplications({
       onSubmitted?.(result);
     } catch (submitError) {
       setError(
-        submitError.response?.data?.message ||
-        submitError.message ||
-        'We could not submit your application. Please try again.'
+        t('application.submitError')
       );
     } finally {
       setIsSubmitting(false);
@@ -157,11 +141,11 @@ export default function JobApplications({
           onClick={onCancel}
           className="text-sm text-blue-300 hover:text-blue-200 mb-5"
         >
-          ← Back to job details
+          ← {t('application.backToDetails')}
         </button>
 
         <p className="text-sm font-semibold text-blue-400">
-          JOB APPLICATION
+          {t('application.title')}
         </p>
 
         <h2
@@ -179,7 +163,7 @@ export default function JobApplications({
           <div className="mb-7">
             <div className="flex justify-between text-sm text-gray-400 mb-2">
               <span>
-                Question {currentQuestion + 1} of {APPLICATION_QUESTIONS.length}
+                {t('application.question', { step: currentQuestion + 1, total: APPLICATION_QUESTIONS.length })}
               </span>
               <span>
                 {Math.round(
@@ -194,7 +178,7 @@ export default function JobApplications({
               aria-valuenow={currentQuestion + 1}
               aria-valuemin={1}
               aria-valuemax={APPLICATION_QUESTIONS.length}
-              aria-label="Application progress"
+              aria-label={t('application.progress')}
             >
               <div
                 className="h-full bg-blue-500 rounded-full transition-all"
@@ -207,8 +191,8 @@ export default function JobApplications({
 
           <VoiceInput
             id={`application-${question.id}`}
-            label={question.label}
-            placeholder={question.placeholder}
+            label={t(`application.${question.labelKey}`)}
+            placeholder={t(`application.${question.placeholderKey}`)}
             type="textarea"
             value={currentAnswer}
             onChange={(value) => updateAnswer(question.id, value)}
@@ -223,10 +207,10 @@ export default function JobApplications({
               className="px-5 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-white"
             >
               {isEditingAnswer
-                ? 'Back to review'
+                ? t('application.backToReview')
                 : currentQuestion === 0
-                  ? 'Cancel'
-                  : 'Previous'}
+                  ? t('application.cancel')
+                  : t('application.previous')}
             </button>
 
             <button
@@ -235,21 +219,21 @@ export default function JobApplications({
               className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold text-white"
             >
               {isEditingAnswer
-                ? 'Save answer'
+                ? t('application.saveAnswer')
                 : currentQuestion === APPLICATION_QUESTIONS.length - 1
-                  ? 'Review answers'
-                  : 'Next question'}
+                  ? t('application.reviewButton')
+                  : t('application.next')}
             </button>
           </div>
         </>
       ) : (
         <>
           <h3 className="text-xl font-bold text-white mb-2">
-            Review your answers
+            {t('application.review')}
           </h3>
 
           <p className="text-sm text-gray-400 mb-6">
-            Check your answers before submitting. You can edit any answer.
+            {t('application.reviewHelp')}
           </p>
 
           <div className="space-y-5">
@@ -260,7 +244,7 @@ export default function JobApplications({
               >
                 <div className="flex justify-between items-start gap-3">
                   <h4 className="font-semibold text-white">
-                    {index + 1}. {item.label}
+                    {index + 1}. {t(`application.${item.labelKey}`)}
                   </h4>
 
                   <button
@@ -273,7 +257,7 @@ export default function JobApplications({
                     }}
                     className="text-sm text-blue-300 hover:text-blue-200 shrink-0"
                   >
-                    Edit
+                    {t('application.edit')}
                   </button>
                 </div>
 
@@ -297,7 +281,7 @@ export default function JobApplications({
               disabled={isSubmitting}
               className="px-5 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-white disabled:opacity-50"
             >
-              Back
+              {t('application.back')}
             </button>
 
             <button
@@ -306,7 +290,7 @@ export default function JobApplications({
               disabled={isSubmitting}
               className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold text-white disabled:opacity-50"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit application'}
+              {isSubmitting ? t('application.submitting') : t('application.submit')}
             </button>
           </div>
         </>
