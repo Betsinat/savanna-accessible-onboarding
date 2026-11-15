@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import JobPostingForm from './JobPostingForm';
+import EmployerApplications from './EmployerApplications';
 
 export default function EmployerDashboard() {
   const [publishedJob, setPublishedJob] = useState(null);
@@ -45,6 +46,7 @@ export default function EmployerDashboard() {
         </div>
 
         <JobPostingForm onJobPublished={setPublishedJob} />
+        <EmployerApplications />
 
         {publishedJob && (
           <section
