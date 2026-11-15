@@ -1,52 +1,76 @@
 import VoiceInput from '../wizard/VoiceInput';
 
-export default function StepIdentity({ mode, formData, updateFormData, error, inputRef }) {
+export default function StepIdentity({
+  mode,
+  formData,
+  updateFormData,
+  error,
+  inputRef,
+  onVoiceReviewStateChange
+}) {
   const idRoute = formData.idRoute || '';
 
   return (
     <section>
       {mode === 'route' ? (
-        <>
+        <fieldset>
+          <legend className="sr-only">Identity verification method (required)</legend>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button
-              ref={inputRef}
-              type="button"
-              onClick={() => updateFormData('idRoute', 'standard_id')}
-              aria-pressed={idRoute === 'standard_id'}
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? 'idRoute-error' : undefined}
-              className={`p-4 rounded-xl border text-left transition-all ${
+            <label
+              className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${
                 idRoute === 'standard_id'
                   ? 'bg-blue-600/20 border-blue-500 text-white'
                   : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-700'
               }`}
             >
-              <div className="font-semibold text-white">Standard ID Document</div>
-              <div className="text-xs text-gray-400 mt-1">Enter your student ID, national ID, or passport reference.</div>
-            </button>
+              <input
+                ref={inputRef}
+                type="radio"
+                name="idRoute"
+                value="standard_id"
+                required
+                checked={idRoute === 'standard_id'}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'idRoute-error' : undefined}
+                onChange={() => updateFormData('idRoute', 'standard_id')}
+                className="mt-1 h-4 w-4 accent-blue-600"
+              />
+              <span>
+                <span className="block font-semibold text-white">Standard ID Document</span>
+                <span className="mt-1 block text-xs text-gray-300">Enter your student ID, national ID, or passport reference.</span>
+              </span>
+            </label>
 
-            <button
-              type="button"
-              onClick={() => updateFormData('idRoute', 'alternative_route')}
-              aria-pressed={idRoute === 'alternative_route'}
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? 'idRoute-error' : undefined}
-              className={`p-4 rounded-xl border text-left transition-all ${
+            <label
+              className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${
                 idRoute === 'alternative_route'
                   ? 'bg-blue-600/20 border-blue-500 text-white'
                   : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-700'
               }`}
             >
-              <div className="font-semibold text-white">Alternative Vouched Route</div>
-              <div className="text-xs text-gray-400 mt-1">Verify via a trusted proxy or alternative representative credential.</div>
-            </button>
+              <input
+                type="radio"
+                name="idRoute"
+                value="alternative_route"
+                required
+                checked={idRoute === 'alternative_route'}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'idRoute-error' : undefined}
+                onChange={() => updateFormData('idRoute', 'alternative_route')}
+                className="mt-1 h-4 w-4 accent-blue-600"
+              />
+              <span>
+                <span className="block font-semibold text-white">Alternative Vouched Route</span>
+                <span className="mt-1 block text-xs text-gray-300">Verify via a trusted proxy or alternative representative credential.</span>
+              </span>
+            </label>
           </div>
           {error && (
-            <p id="idRoute-error" className="mt-3 text-sm text-red-400" role="alert">
+            <p id="idRoute-error" className="mt-3 text-sm text-red-400">
               {error}
             </p>
           )}
-        </>
+        </fieldset>
       ) : idRoute === 'standard_id' ? (
         <VoiceInput
           id="idNumber"
@@ -57,6 +81,7 @@ export default function StepIdentity({ mode, formData, updateFormData, error, in
           value={formData.idDetails?.idNumber || ''}
           error={error}
           inputRef={inputRef}
+          onReviewStateChange={onVoiceReviewStateChange}
           onChange={(value) =>
             updateFormData('idDetails', { ...formData.idDetails, idNumber: value })
           }
@@ -70,6 +95,7 @@ export default function StepIdentity({ mode, formData, updateFormData, error, in
           value={formData.idDetails?.proxyName || ''}
           error={error}
           inputRef={inputRef}
+          onReviewStateChange={onVoiceReviewStateChange}
           onChange={(value) =>
             updateFormData('idDetails', { ...formData.idDetails, proxyName: value })
           }

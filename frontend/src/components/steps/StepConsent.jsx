@@ -15,10 +15,11 @@ export default function StepConsent({ formData, updateFormData, error, inputRef 
         />
         <label htmlFor="consentGiven" className="text-sm text-gray-300 cursor-pointer">
           I consent to saving my onboarding draft and candidate profile securely to access accessible employment opportunities.
+          <span aria-hidden="true"> (required)</span>
         </label>
       </div>
       {error && (
-        <p id="consentGiven-error" className="mt-3 text-sm text-red-400" role="alert">
+        <p id="consentGiven-error" className="mt-3 text-sm text-red-400">
           {error}
         </p>
       )}

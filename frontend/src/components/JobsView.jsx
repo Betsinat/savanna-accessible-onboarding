@@ -55,7 +55,7 @@ export default function JobsView({ formData = {}, sessionId }) {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto space-y-6">
+      <section aria-label="Job opportunities" className="max-w-4xl mx-auto space-y-6">
         {loading ? (
           <p className="text-gray-400 text-center py-12" role="status">
             Loading accessible job openings...
@@ -126,7 +126,7 @@ export default function JobsView({ formData = {}, sessionId }) {
                     </div>
                   )}
 
-                  <p className="text-xs text-gray-500 pt-2">
+                  <p className="text-xs text-gray-400 pt-2">
                     Application form coming soon.
                   </p>
                 </div>
@@ -134,7 +134,7 @@ export default function JobsView({ formData = {}, sessionId }) {
             ))}
           </div>
         )}
-      </main>
+      </section>
     </div>
   );
 }

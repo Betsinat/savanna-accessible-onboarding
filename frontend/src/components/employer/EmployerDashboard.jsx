@@ -69,7 +69,7 @@ export default function EmployerDashboard() {
           </section>
         )}
 
-        <p className="text-xs text-gray-500 mt-8 leading-relaxed">
+        <p className="text-xs text-gray-400 mt-8 leading-relaxed">
           This is an open demo interface for hackathon evaluation.
           In production, employer access would be handled by the
           authenticated host platform.

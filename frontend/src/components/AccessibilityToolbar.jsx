@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 export default function AccessibilityToolbar() {
   const [highContrast, setHighContrast] = useState(false);
   const [largeText, setLargeText] = useState(false);
-  const [screenReaderHelper, setScreenReaderHelper] = useState(false);
+  const [showScreenReaderHelp, setShowScreenReaderHelp] = useState(false);
 
   // Apply high contrast class to root document element
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function AccessibilityToolbar() {
       <button
         type="button"
         onClick={() => setHighContrast(!highContrast)}
-        className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+        className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
           highContrast ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
         }`}
         aria-pressed={highContrast}
@@ -46,28 +46,31 @@ export default function AccessibilityToolbar() {
       <button
         type="button"
         onClick={() => setLargeText(!largeText)}
-        className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+        className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
           largeText ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
         }`}
         aria-pressed={largeText}
       >
-        {largeText ? 'A+ (Large)' : 'A (Normal)'}
+        Larger text
       </button>
 
       {/* Screen Reader Helper Status */}
       <button
         type="button"
-        onClick={() => {
-          setScreenReaderHelper(!screenReaderHelper);
-          alert(screenReaderHelper ? 'Screen Reader Helper Disabled' : 'Screen Reader Helper Active: ARIA live announcements enabled.');
-        }}
-        className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-          screenReaderHelper ? 'bg-emerald-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+        onClick={() => setShowScreenReaderHelp((shown) => !shown)}
+        className={`border border-gray-500 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+          showScreenReaderHelp ? 'bg-emerald-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
         }`}
-        aria-pressed={screenReaderHelper}
+        aria-expanded={showScreenReaderHelp}
+        aria-controls="screen-reader-help"
       >
-        {screenReaderHelper ? '🔊 SR Helper ON' : '🔇 SR Helper'}
+        Screen reader help
       </button>
+      <p id="screen-reader-help" className="sr-only" role="status" aria-live="polite">
+        {showScreenReaderHelp
+          ? 'Form errors, voice input status, and question changes are announced as you use the application.'
+          : ''}
+      </p>
     </aside>
   );
 }

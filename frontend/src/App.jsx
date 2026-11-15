@@ -147,7 +147,7 @@ export default function App() {
                   className={`px-4 py-2.5 rounded-lg text-sm font-medium transition ${
                     activeView === item.id
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-900 text-gray-300 hover:bg-gray-800'
+                      : 'border border-gray-500 bg-gray-900 text-gray-300 hover:bg-gray-800'
                   }`}
                 >
                   {item.label}
@@ -161,7 +161,7 @@ export default function App() {
                   className={`px-4 py-2.5 rounded-lg text-sm font-medium border ${
                     isAccessibilityTestMode
                       ? 'bg-amber-700 border-amber-500 text-white'
-                      : 'bg-gray-900 border-gray-700 text-amber-200 hover:bg-gray-800'
+                      : 'bg-gray-900 border-gray-500 text-amber-200 hover:bg-gray-800'
                   }`}
                 >
                   {isAccessibilityTestMode

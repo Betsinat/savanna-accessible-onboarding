@@ -91,7 +91,7 @@ export default function JobCard({ job }) {
       )}
 
       {accommodations.length === 0 && requirements.length === 0 && (
-        <p className="text-xs text-gray-500 mt-5">
+        <p className="text-xs text-gray-400 mt-5">
           More job details may be provided by the employer.
         </p>
       )}
