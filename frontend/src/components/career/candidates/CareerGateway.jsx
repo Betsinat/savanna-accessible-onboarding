@@ -139,7 +139,7 @@ export default function CareerGateway({ formData = {}, sessionId }) {
             }}
           />
         )}
-      </section>
+      </main>
     </div>
   );
 }
