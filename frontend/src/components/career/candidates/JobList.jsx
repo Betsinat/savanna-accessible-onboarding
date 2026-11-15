@@ -1,8 +1,7 @@
-
 import React from 'react';
 import JobCard from './JobCard';
 
-export default function JobList({ jobs }) {
+export default function JobList({ jobs, onViewDetails }) {
   if (jobs.length === 0) {
     return (
       <div className="text-center py-16 bg-gray-900 border border-gray-800 rounded-2xl">
@@ -19,7 +18,11 @@ export default function JobList({ jobs }) {
   return (
     <div className="grid grid-cols-1 gap-5">
       {jobs.map((job) => (
-        <JobCard key={job._id} job={job} />
+        <JobCard
+          key={job._id}
+          job={job}
+          onViewDetails={onViewDetails}
+        />
       ))}
     </div>
   );
