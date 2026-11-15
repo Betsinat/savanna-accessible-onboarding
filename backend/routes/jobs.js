@@ -266,5 +266,105 @@ router.post('/employer/jobs', async (req, res) => {
     });
   }
 });
+// GET /api/employer/jobs/:jobId/applications
+// Retrieve applicants for a job (hackathon demo only)
+router.get('/employer/jobs/:jobId/applications', async (req, res) => {
+  try {
+    const { jobId } = req.params;
 
+    if (!mongoose.isValidObjectId(jobId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid job ID'
+      });
+    }
+
+    const job = await Job.findById(jobId).select('title company');
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found'
+      });
+    }
+
+    const applications = await JobApplication.find({ jobId })
+      .select('-sessionId -__v')
+      .sort({ submittedAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      job,
+      count: applications.length,
+      applications
+    });
+
+  } catch (error) {
+    console.error('Employer applicant retrieval error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve applicants'
+    });
+  }
+});
+// PATCH /api/employer/applications/:applicationId/status
+// Update an applicant's status (hackathon demo only)
+router.patch('/employer/applications/:applicationId/status', async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = [
+      'pending',
+      'reviewed',
+      'shortlisted',
+      'rejected'
+    ];
+
+    if (!mongoose.isValidObjectId(applicationId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid application ID'
+      });
+    }
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid application status'
+      });
+    }
+
+    const application = await JobApplication.findByIdAndUpdate(
+      applicationId,
+      { status },
+      {
+        new: true,
+        runValidators: true
+      }
+    ).select('-sessionId -__v');
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Application status updated successfully',
+      application
+    });
+
+  } catch (error) {
+    console.error('Application status update error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update application status'
+    });
+  }
+});
 module.exports = router;
